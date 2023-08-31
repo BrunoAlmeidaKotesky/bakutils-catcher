@@ -135,27 +135,6 @@ export const None: Option<never> = {
     isNone: () => true
 };
 
-/**
- * Checks if an Option contains a value.
- * @param option The Option to check.
- * @returns True if the Option contains a value, false otherwise.
- * Note: Prefer using the isSome method directly on the Option object.
- */
-export function isSome<T>(option: Option<T>): option is SomeType<T> {
-    return option.type === 'some';
-}
-
-/**
- * Checks if an Option does not contain a value.
- * @param option The Option to check.
- * @returns True if the Option does not contain a value, false otherwise.
- * Note: Prefer using the isNone method directly on the Option object.
- */
-export function isNone<T>(option: Option<T>): option is NoneType {
-    return option.type === 'none';
-}
-
-
 //Decorators
 export function isPromise<T = any>(object: any): object is Promise<T> {
     return object && Promise.resolve(object) === object;

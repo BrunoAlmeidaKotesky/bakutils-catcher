@@ -9,7 +9,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DefaultCatch = exports.Catch = exports.isFunction = exports.isPromise = exports.isNone = exports.isSome = exports.None = exports.Some = exports.Err = exports.Ok = void 0;
+exports.DefaultCatch = exports.Catch = exports.isFunction = exports.isPromise = exports.None = exports.Some = exports.Err = exports.Ok = void 0;
 /** Creates a successful Result with the given value.
  * @param value The value of the successful computation.
  * @returns A Result with the 'ok' type and the provided value.*/
@@ -71,26 +71,6 @@ exports.None = {
     isSome: function () { return false; },
     isNone: function () { return true; }
 };
-/**
- * Checks if an Option contains a value.
- * @param option The Option to check.
- * @returns True if the Option contains a value, false otherwise.
- * Note: Prefer using the isSome method directly on the Option object.
- */
-function isSome(option) {
-    return option.type === 'some';
-}
-exports.isSome = isSome;
-/**
- * Checks if an Option does not contain a value.
- * @param option The Option to check.
- * @returns True if the Option does not contain a value, false otherwise.
- * Note: Prefer using the isNone method directly on the Option object.
- */
-function isNone(option) {
-    return option.type === 'none';
-}
-exports.isNone = isNone;
 //Decorators
 function isPromise(object) {
     return object && Promise.resolve(object) === object;
