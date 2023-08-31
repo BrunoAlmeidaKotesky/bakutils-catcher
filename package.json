@@ -1,30 +1,29 @@
 {
     "name": "bakutils-catcher",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Utility library for handling errors elegantly with Decorators and Rust-like algebraic types.",
     "main": "index.js",
     "scripts": {
-      "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1"
     },
     "type": "module",
     "files": [
-      "index.js",
-      "index.ts"
+        "index.js",
+        "index.ts"
     ],
     "module": "./index.js",
     "types": "./index.ts",
     "keywords": [
-      "typescript",
-      "utility",
-      "error",
-      "errors",
-      "error-handling"
+        "typescript",
+        "utility",
+        "error",
+        "errors",
+        "error-handling"
     ],
     "author": "Bruno Almeida Kotesky",
     "license": "MIT",
     "repository": {
-      "type": "git",
-      "url": "https://github.com/BrunoAlmeidaKotesky/bakutils-types"
+        "type": "git",
+        "url": "https://github.com/BrunoAlmeidaKotesky/bakutils-types"
     }
-  }
-  
+}
