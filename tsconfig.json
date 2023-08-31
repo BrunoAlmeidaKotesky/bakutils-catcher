@@ -1,0 +1,48 @@
+{
+    "compilerOptions": {
+      "target": "ES2019",
+      "useDefineForClassFields": true,
+      "lib": [
+        "es2015",
+        "es2015.promise",
+        "es2016",
+        "es6",
+        "dom",
+        "dom.iterable",
+        "es2015.collection",
+        "ES2019",
+        "es2019.Array",
+        "ES2017",
+        "ES2018",
+        "ES2020",
+        "ESNext",
+        "ESNext.Promise",
+        "ES2020.Promise",
+        "ES2015.Promise"
+      ],
+      "allowJs": false,
+      "skipLibCheck": true,
+      "esModuleInterop": false,
+      "allowSyntheticDefaultImports": true,
+      "emitDecoratorMetadata": true,
+      "strictNullChecks": false,
+      "strict": false,
+      "forceConsistentCasingInFileNames": true,
+      "experimentalDecorators": true,
+      "module": "ES2022",
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "downlevelIteration": true,
+      "noErrorTruncation": true,
+      "noImplicitAny": false,
+      "moduleResolution": "Node",
+      "resolveJsonModule": true,
+      "isolatedModules": true,
+      "noEmit": true,
+      "baseUrl": "./",
+    },
+    "include": [
+      "index.ts",
+      "index.js"
+    ]
+  }
