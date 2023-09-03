@@ -1,16 +1,17 @@
 {
     "name": "bakutils-catcher",
-    "version": "1.2.0",
+    "version": "1.2.2",
     "description": "Utility library for handling errors elegantly with Decorators and Rust-like algebraic types.",
     "scripts": {
         "build": "rollup -c"
     },
-    "main": "dist/index.cjs.js",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "files": [
         "dist"
     ],
     "type": "module",
-    "module": "dist/index.esm.js", 
+    "module": "dist/index.js", 
     "keywords": [
         "typescript",
         "utility",

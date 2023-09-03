@@ -1,6 +1,8 @@
 {
     "compilerOptions": {
       "target": "ES2019",
+      "declaration": true,
+      "outDir": "./dist/types",
       "useDefineForClassFields": true,
       "lib": [
         "ES2019",
