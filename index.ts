@@ -137,7 +137,7 @@ export const None: Option<never> = {
 
 //Decorators
 export function isPromise<T = any>(object: any): object is Promise<T> {
-    return object && Promise.resolve(object) === object;
+    return object && object instanceof Promise;
 }
 
 export function isFunction(func: any): func is Function {

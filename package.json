@@ -1,18 +1,16 @@
 {
     "name": "bakutils-catcher",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "Utility library for handling errors elegantly with Decorators and Rust-like algebraic types.",
-    "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "build": "rollup -c"
     },
-    "type": "module",
+    "main": "dist/index.cjs.js",
     "files": [
-        "index.js",
-        "index.ts"
+        "dist"
     ],
-    "module": "./index.js",
-    "types": "./index.ts",
+    "type": "module",
+    "module": "dist/index.esm.js", 
     "keywords": [
         "typescript",
         "utility",
@@ -25,5 +23,9 @@
     "repository": {
         "type": "git",
         "url": "https://github.com/BrunoAlmeidaKotesky/bakutils-catcher"
+    },
+    "devDependencies": {
+        "rollup": "^3.28.1",
+        "rollup-plugin-typescript2": "^0.35.0"
     }
 }
