@@ -135,6 +135,18 @@ export const None: Option<never> = {
     isNone: () => true
 };
 
+/**
+ * 
+ * @param value A value that may contain a value or be undefined or null.
+ * @returns An Option with the 'some' type if the provided value is not undefined or null, otherwise an Option with the 'none' type.
+ * 
+ * This wrapper is useful when you want to convert a value that you don't know if it is defined or not.
+ */
+export function Option<T>(value: T | undefined | null): Option<T> {
+    return value === undefined || value === null ? None : Some(value);
+}
+
+
 //Decorators
 export function isPromise<T = any>(object: any): object is Promise<T> {
     return object && object instanceof Promise;
