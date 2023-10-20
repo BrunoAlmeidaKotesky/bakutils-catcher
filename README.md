@@ -53,6 +53,15 @@ The Option type can either be Some representing an existing value or None repres
     - .isSome(): Returns true if the Option contains a value, false otherwise.
     - .isNone(): Returns true if the Option does not contain a value, false otherwise.
 
+You can wrap any value with the `Option` function (Not the type) on cases where you are not sure if the value is `null` or `undefined`.
+```ts
+import {Option, Some} from 'bakutils-catcher';
+let unknownRunTimeValue = /*...*/;
+//TypeScript will infer if you are using Option as a type or as a function.
+const someValue = Option(unknownRunTimeValue);
+const typedSomeValue: Option<number> = Some(unknownRunTimeValue);
+```
+
 ##### Decorators
 ###### Catch
 A TypeScript decorator that wraps a class method with error-handling logic. It catches errors of a specific type thrown within the decorated method.
