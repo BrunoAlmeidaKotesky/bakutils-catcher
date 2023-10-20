@@ -88,6 +88,14 @@ export declare function Some<T>(value: T): Option<T>;
  * @returns An Option with the 'none' type.
  */
 export declare const None: Option<never>;
+/**
+ *
+ * @param value A value that may contain a value or be undefined or null.
+ * @returns An Option with the 'some' type if the provided value is not undefined or null, otherwise an Option with the 'none' type.
+ *
+ * This wrapper is useful when you want to convert a value that you don't know if it is defined or not.
+ */
+export declare function Option<T>(value: T | undefined | null): Option<T>;
 export declare function isPromise<T = any>(object: any): object is Promise<T>;
 export declare function isFunction(func: any): func is Function;
 export type Handler<R = any, E = any, Args extends any[] = any[], C = any> = (err: E, context: C, ...args: Args) => R;

@@ -56,6 +56,16 @@ const None = {
     isSome: () => false,
     isNone: () => true
 };
+/**
+ *
+ * @param value A value that may contain a value or be undefined or null.
+ * @returns An Option with the 'some' type if the provided value is not undefined or null, otherwise an Option with the 'none' type.
+ *
+ * This wrapper is useful when you want to convert a value that you don't know if it is defined or not.
+ */
+function Option(value) {
+    return value === undefined || value === null ? None : Some(value);
+}
 //Decorators
 function isPromise(object) {
     return object && object instanceof Promise;
@@ -116,4 +126,4 @@ function DefaultCatch(handler) {
     return Factory(handler);
 }
 
-export { Catch, DefaultCatch, Err, None, Ok, Some, isFunction, isPromise };
+export { Catch, DefaultCatch, Err, None, Ok, Option, Some, isFunction, isPromise };
