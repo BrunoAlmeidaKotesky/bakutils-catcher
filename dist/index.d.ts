@@ -12,6 +12,8 @@ export interface Left<T, E> {
     isErr(this: Result<T, E>): this is Left<T, E>;
     /*** Returns true if the Result is successful, false otherwise.*/
     isOk(this: Result<T, E>): this is Right<T, E>;
+    /** Transforms the Result into an Option, encapsulating the Result within. */
+    transpose(): Option<Result<T, E>>;
 }
 /** Represents a successful computation.*/
 export interface Right<T, E> {
@@ -27,6 +29,7 @@ export interface Right<T, E> {
     isErr(this: Result<T, E>): this is Left<T, E>;
     /*** Returns true if the Result is successful, false otherwise.*/
     isOk(this: Result<T, E>): this is Right<T, E>;
+    transpose(): Option<Result<T, E>>;
 }
 /**Represents the result of a computation that can either succeed with a value of type T or fail with an error of type E.*/
 export type Result<T, E> = Left<T, E> | Right<T, E>;
@@ -46,6 +49,16 @@ export interface SomeType<T> {
     isSome(this: Option<T>): this is SomeType<T>;
     /*** Returns true if the Option does not contain a value, false otherwise.*/
     isNone(this: Option<T>): this is NoneType;
+    /** Applies a function to the contained value (if any), and returns an Option containing the result.*/
+    map<U>(fn: (value: T) => Exclude<U, null | undefined>): Option<U>;
+    /** Applies a function to the contained value (if any), which itself returns an Option, and then flattens the result. */
+    flatMap<U>(fn: (value: T) => Option<U>): Option<U>;
+    /** Transforms the Option into a Result, with a provided error value. */
+    okOr<E>(this: Option<T>, _err: E): Result<T, E>;
+    /** Transforms the Option into a Result, with a provided error function.*/
+    okOrElse<E>(this: Option<T>, _errFn: () => E): Result<T, E>;
+    /** Transforms an Option of a Result (Option<Result<T, E>>) into a Result of an Option (Result<Option<T>, E>). */
+    transpose<E>(): Result<Option<T>, E>;
 }
 /**
  * Represents an Option that does not contain a value.
@@ -62,6 +75,16 @@ export interface NoneType {
     isSome<T>(this: Option<T>): this is SomeType<T>;
     /*** Returns true if the Option does not contain a value, false otherwise.*/
     isNone<T>(this: Option<T>): this is NoneType;
+    /** Applies a function to the contained value (if any), and returns an Option containing the result.*/
+    map<U>(fn: (value: never) => U): Option<U>;
+    /** Applies a function to the contained value (if any), which itself returns an Option, and then flattens the result. */
+    flatMap<U>(fn: (value: never) => Option<U>): Option<U>;
+    /** Transforms the Option into a Result, with a provided error value. */
+    okOr<E>(this: Option<never>, err: E): Result<never, E>;
+    /** Transforms the Option into a Result, with a provided error function.*/
+    okOrElse<E>(this: Option<never>, errFn: () => E): Result<never, E>;
+    /** Transforms an Option of a Result (Option<Result<never, E>>) into a Result of an Option (Result<Option<never>, E>).*/
+    transpose<E>(): Result<Option<never>, E>;
 }
 /**
  * Represents an optional value: every Option is either Some with a value of type T or None.
@@ -77,12 +100,14 @@ export declare function Ok<T, E>(value: T): Result<T, E>;
  * @returns A Result with the 'error' type and the provided error.
  */
 export declare function Err<T, E>(error: E): Result<T, E>;
+/** Create an Result with the given error, without using `Ok` or `Err` directly. */
+export declare function Result<T, E>(value: T, err: E): Result<T, E>;
 /**
  * Creates an Option with a value.
  * @param value The value to be wrapped in the Option.
  * @returns An Option with the 'some' type and the provided value.
  */
-export declare function Some<T>(value: T): Option<T>;
+export declare function Some<T>(value: T extends null | undefined ? never : T): Option<T>;
 /**
  * Represents an empty Option with no value.
  * @returns An Option with the 'none' type.

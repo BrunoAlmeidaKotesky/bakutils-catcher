@@ -9,7 +9,17 @@ function Ok(value) {
         unwrapOr: () => value,
         unwrapOrElse: () => value,
         isErr: () => false,
-        isOk: () => true
+        isOk: () => true,
+        transpose: () => {
+            // Se o valor é uma Option
+            if (value && typeof value === 'object' && 'type' in value) {
+                if (this.value.type === 'some')
+                    return Some(Ok(this.value.value));
+                else if (value.type === 'none')
+                    return None;
+            }
+            throw new Error("Value must be an Option");
+        }
     };
 }
 /**
@@ -25,8 +35,13 @@ function Err(error) {
         unwrapOr: (defaultValue) => defaultValue,
         unwrapOrElse: (fn) => fn(error),
         isErr: () => true,
-        isOk: () => false
+        isOk: () => false,
+        transpose: () => None
     };
+}
+/** Create an Result with the given error, without using `Ok` or `Err` directly. */
+function Result(value, err) {
+    return value === undefined || value === null ? Err(err) : Ok(value);
 }
 /**
  * Creates an Option with a value.
@@ -34,6 +49,8 @@ function Err(error) {
  * @returns An Option with the 'some' type and the provided value.
  */
 function Some(value) {
+    if (value === null || value === undefined)
+        throw new Error("Some() cannot be called with null or undefined");
     return {
         type: 'some',
         value,
@@ -41,7 +58,23 @@ function Some(value) {
         unwrapOr: () => value,
         unwrapOrElse: () => value,
         isSome: () => true,
-        isNone: () => false
+        isNone: () => false,
+        map: (fn) => Some(fn(value)),
+        flatMap: (fn) => fn(value),
+        okOr(_err) {
+            return Ok(value);
+        },
+        okOrElse(_errFn) {
+            return Ok(value);
+        },
+        transpose() {
+            if (this.value && this.value.type === 'ok')
+                return Ok(Some(this.value.value));
+            else if (this.value && this.value.type === 'error')
+                return Err(this.value.error);
+            else
+                throw new Error("Value must be a Result");
+        }
     };
 }
 /**
@@ -54,7 +87,12 @@ const None = {
     unwrapOr: (defaultValue) => defaultValue,
     unwrapOrElse: (fn) => fn(),
     isSome: () => false,
-    isNone: () => true
+    isNone: () => true,
+    map: () => None,
+    flatMap: (_fn) => None,
+    okOr: (err) => Err(err),
+    okOrElse: (errFn) => Err(errFn()),
+    transpose: () => Ok(None)
 };
 /**
  *
@@ -126,4 +164,4 @@ function DefaultCatch(handler) {
     return Factory(handler);
 }
 
-export { Catch, DefaultCatch, Err, None, Ok, Option, Some, isFunction, isPromise };
+export { Catch, DefaultCatch, Err, None, Ok, Option, Result, Some, isFunction, isPromise };
