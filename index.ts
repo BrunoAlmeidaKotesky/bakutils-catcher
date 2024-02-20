@@ -12,8 +12,7 @@ export interface Left<T, E> {
     isErr(this: Result<T, E>): this is Left<T, E>;
     /*** Returns true if the Result is successful, false otherwise.*/
     isOk(this: Result<T, E>): this is Right<T, E>;
-    /** Transforms the Result into an Option, encapsulating the Result within. */
-    transpose(): Option<Result<T, E>>;
+    toOption(): Option<T>;
 }
 
 /** Represents a successful computation.*/
@@ -30,7 +29,7 @@ export interface Right<T, E> {
     isErr(this: Result<T, E>): this is Left<T, E>;
     /*** Returns true if the Result is successful, false otherwise.*/
     isOk(this: Result<T, E>): this is Right<T, E>;
-    transpose(): Option<Result<T, E>>;
+    toOption(): Option<T>;
 }
 
 /**Represents the result of a computation that can either succeed with a value of type T or fail with an error of type E.*/
@@ -60,8 +59,6 @@ export interface SomeType<T> {
     okOr<E>(this: Option<T>, _err: E): Result<T, E>;
     /** Transforms the Option into a Result, with a provided error function.*/
     okOrElse<E>(this: Option<T>, _errFn: () => E): Result<T, E>;
-    /** Transforms an Option of a Result (Option<Result<T, E>>) into a Result of an Option (Result<Option<T>, E>). */
-    transpose<E>(): Result<Option<T>, E>;
 }
 
 /**
@@ -84,11 +81,9 @@ export interface NoneType {
     /** Applies a function to the contained value (if any), which itself returns an Option, and then flattens the result. */
     flatMap<U>(fn: (value: never) => Option<U>): Option<U>;
     /** Transforms the Option into a Result, with a provided error value. */
-    okOr<E>(this: Option<never>, err: E): Result<never, E>;
+    okOr<E>(this: Option<unknown>, err: E): Result<never, E>;
     /** Transforms the Option into a Result, with a provided error function.*/
-    okOrElse<E>(this: Option<never>, errFn: () => E): Result<never, E>;
-    /** Transforms an Option of a Result (Option<Result<never, E>>) into a Result of an Option (Result<Option<never>, E>).*/
-    transpose<E>(): Result<Option<never>, E>;
+    okOrElse<E>(this: Option<unknown>, errFn: () => E): Result<never, E>;
 }
 
 /**
@@ -108,16 +103,7 @@ export function Ok<T, E>(value: T): Result<T, E> {
         unwrapOrElse: () => value,
         isErr: () => false,
         isOk: () => true,
-        transpose: (): Option<Result<T, E>> => {
-            // Se o valor é uma Option
-            if (value && typeof value === 'object' && 'type' in value) {
-                if (this.value.type === 'some')
-                    return Some(Ok(this.value.value));
-                else if (value.type === 'none')
-                    return None;
-            }
-            throw new Error("Value must be an Option");
-        }
+        toOption: () => Option(value)
     };
 }
 
@@ -135,7 +121,7 @@ export function Err<T, E>(error: E): Result<T, E> {
         unwrapOrElse: (fn: (error: E) => T) => fn(error),
         isErr: () => true,
         isOk: () => false,
-        transpose: () => None
+        toOption: () => None
     };
 }
 
@@ -168,14 +154,6 @@ export function Some<T>(value: T extends null | undefined ? never : T): Option<T
         okOrElse(_errFn) {
             return Ok(value);
         },
-        transpose() {
-            if (this.value && this.value.type === 'ok')
-                return Ok(Some(this.value.value));
-            else if (this.value && this.value.type === 'error')
-                return Err(this.value.error);
-            else
-                throw new Error("Value must be a Result");
-        }
     };
 }
 
@@ -194,7 +172,6 @@ export const None: Option<never> = {
     flatMap: (_fn) => None,
     okOr: (err) => Err(err),
     okOrElse: (errFn) => Err(errFn()),
-    transpose: () => Ok(None)
 };
 
 /**

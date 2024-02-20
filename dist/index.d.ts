@@ -12,8 +12,7 @@ export interface Left<T, E> {
     isErr(this: Result<T, E>): this is Left<T, E>;
     /*** Returns true if the Result is successful, false otherwise.*/
     isOk(this: Result<T, E>): this is Right<T, E>;
-    /** Transforms the Result into an Option, encapsulating the Result within. */
-    transpose(): Option<Result<T, E>>;
+    toOption(): Option<T>;
 }
 /** Represents a successful computation.*/
 export interface Right<T, E> {
@@ -29,7 +28,7 @@ export interface Right<T, E> {
     isErr(this: Result<T, E>): this is Left<T, E>;
     /*** Returns true if the Result is successful, false otherwise.*/
     isOk(this: Result<T, E>): this is Right<T, E>;
-    transpose(): Option<Result<T, E>>;
+    toOption(): Option<T>;
 }
 /**Represents the result of a computation that can either succeed with a value of type T or fail with an error of type E.*/
 export type Result<T, E> = Left<T, E> | Right<T, E>;
@@ -57,8 +56,6 @@ export interface SomeType<T> {
     okOr<E>(this: Option<T>, _err: E): Result<T, E>;
     /** Transforms the Option into a Result, with a provided error function.*/
     okOrElse<E>(this: Option<T>, _errFn: () => E): Result<T, E>;
-    /** Transforms an Option of a Result (Option<Result<T, E>>) into a Result of an Option (Result<Option<T>, E>). */
-    transpose<E>(): Result<Option<T>, E>;
 }
 /**
  * Represents an Option that does not contain a value.
@@ -80,11 +77,9 @@ export interface NoneType {
     /** Applies a function to the contained value (if any), which itself returns an Option, and then flattens the result. */
     flatMap<U>(fn: (value: never) => Option<U>): Option<U>;
     /** Transforms the Option into a Result, with a provided error value. */
-    okOr<E>(this: Option<never>, err: E): Result<never, E>;
+    okOr<E>(this: Option<unknown>, err: E): Result<never, E>;
     /** Transforms the Option into a Result, with a provided error function.*/
-    okOrElse<E>(this: Option<never>, errFn: () => E): Result<never, E>;
-    /** Transforms an Option of a Result (Option<Result<never, E>>) into a Result of an Option (Result<Option<never>, E>).*/
-    transpose<E>(): Result<Option<never>, E>;
+    okOrElse<E>(this: Option<unknown>, errFn: () => E): Result<never, E>;
 }
 /**
  * Represents an optional value: every Option is either Some with a value of type T or None.

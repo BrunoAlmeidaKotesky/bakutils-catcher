@@ -12,16 +12,7 @@ function Ok(value) {
         unwrapOrElse: () => value,
         isErr: () => false,
         isOk: () => true,
-        transpose: () => {
-            // Se o valor é uma Option
-            if (value && typeof value === 'object' && 'type' in value) {
-                if (this.value.type === 'some')
-                    return Some(Ok(this.value.value));
-                else if (value.type === 'none')
-                    return None;
-            }
-            throw new Error("Value must be an Option");
-        }
+        toOption: () => Option(value)
     };
 }
 /**
@@ -38,7 +29,7 @@ function Err(error) {
         unwrapOrElse: (fn) => fn(error),
         isErr: () => true,
         isOk: () => false,
-        transpose: () => None
+        toOption: () => None
     };
 }
 /** Create an Result with the given error, without using `Ok` or `Err` directly. */
@@ -69,14 +60,6 @@ function Some(value) {
         okOrElse(_errFn) {
             return Ok(value);
         },
-        transpose() {
-            if (this.value && this.value.type === 'ok')
-                return Ok(Some(this.value.value));
-            else if (this.value && this.value.type === 'error')
-                return Err(this.value.error);
-            else
-                throw new Error("Value must be a Result");
-        }
     };
 }
 /**
@@ -94,7 +77,6 @@ const None = {
     flatMap: (_fn) => None,
     okOr: (err) => Err(err),
     okOrElse: (errFn) => Err(errFn()),
-    transpose: () => Ok(None)
 };
 /**
  *

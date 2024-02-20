@@ -29,6 +29,7 @@
       "isolatedModules": true,
       "noEmit": false,
       "baseUrl": "./",
+      "types": ["node", "jest"]
     },
     "include": [
       "index.ts",
