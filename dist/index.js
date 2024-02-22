@@ -34,6 +34,7 @@ function Err(error) {
 function Result(value, err) {
     return value === undefined || value === null ? Err(err) : Ok(value);
 }
+const getDefValue = (df) => typeof df === 'function' ? df() : df;
 /**
  * Creates an Option with a value.
  * @param value The value to be wrapped in the Option.
@@ -52,12 +53,12 @@ function Some(value) {
         isNone: () => false,
         map: (fn) => Some(fn(value)),
         flatMap: (fn) => fn(value),
-        okOr(_err) {
-            return Ok(value);
-        },
-        okOrElse(_errFn) {
-            return Ok(value);
-        },
+        okOr: (_err) => Ok(value),
+        okOrElse: (_errFn) => Ok(value),
+        mapOr: (fn, defaultValue) => {
+            const option = Option(fn(value));
+            return option.isNone() ? Option(getDefValue(defaultValue)) : option;
+        }
     };
 }
 /**
@@ -75,6 +76,7 @@ const None = {
     flatMap: (_fn) => None,
     okOr: (err) => Err(err),
     okOrElse: (errFn) => Err(errFn()),
+    mapOr: (_fn, defaultValue) => Option(getDefValue(defaultValue))
 };
 /**
  *

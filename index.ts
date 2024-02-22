@@ -12,6 +12,7 @@ export interface Left<T, E> {
     isErr(this: Result<T, E>): this is Left<T, E>;
     /*** Returns true if the Result is successful, false otherwise.*/
     isOk(this: Result<T, E>): this is Right<T, E>;
+    /** Converts the Result into an Option. */
     toOption(): Option<T>;
 }
 
@@ -29,6 +30,7 @@ export interface Right<T, E> {
     isErr(this: Result<T, E>): this is Left<T, E>;
     /*** Returns true if the Result is successful, false otherwise.*/
     isOk(this: Result<T, E>): this is Right<T, E>;
+    /** Converts the Result into an Option. */
     toOption(): Option<T>;
 }
 
@@ -50,9 +52,10 @@ export interface SomeType<T> {
     /*** Returns true if the Option contains a value, false otherwise.*/
     isSome(this: Option<T>): this is SomeType<T>;
     /*** Returns true if the Option does not contain a value, false otherwise.*/
-    isNone(this: Option<T>): this is NoneType;
+    isNone(this: Option<T>): this is NoneType<T>;
     /** Applies a function to the contained value (if any), and returns an Option containing the result.*/
     map<U>(fn: (value: T) => Exclude<U, null | undefined>): Option<U>;
+    mapOr<U>(fn: (value: T) => Exclude<U, null | undefined>, defaultValue: ValueOrFn<U>): Option<U>;
     /** Applies a function to the contained value (if any), which itself returns an Option, and then flattens the result. */
     flatMap<U>(fn: (value: T) => Option<U>): Option<U>;
     /** Transforms the Option into a Result, with a provided error value. */
@@ -61,10 +64,11 @@ export interface SomeType<T> {
     okOrElse<E>(this: Option<T>, _errFn: () => E): Result<T, E>;
 }
 
+type ValueOrFn<T> = T | (() => T);
 /**
  * Represents an Option that does not contain a value.
  */
-export interface NoneType {
+export interface NoneType<T = never> {
     type: 'none';
     /*** Throws an error because None does not contain a value.*/
     unwrap(): never;
@@ -73,13 +77,14 @@ export interface NoneType {
     /*** Calls the provided function and returns its result because None does not contain a value.*/
     unwrapOrElse<T>(fn: () => T): T;
     /*** Returns true if the Option contains a value, false otherwise.*/
-    isSome<T>(this: Option<T>): this is SomeType<T>;
+    isSome(this: Option<T>): this is SomeType<T>;
     /*** Returns true if the Option does not contain a value, false otherwise.*/
-    isNone<T>(this: Option<T>): this is NoneType;
+    isNone(this: Option<T>): this is NoneType<T>;
     /** Applies a function to the contained value (if any), and returns an Option containing the result.*/
-    map<U>(fn: (value: never) => U): Option<U>;
+    map<U>(fn: (value: T) => U): Option<U>;
+    mapOr<U>(fn: (value: T) => Exclude<U, null | undefined>, defaultValue: ValueOrFn<U>): Option<U>;
     /** Applies a function to the contained value (if any), which itself returns an Option, and then flattens the result. */
-    flatMap<U>(fn: (value: never) => Option<U>): Option<U>;
+    flatMap<U>(fn: (value: T) => Option<U>): Option<U>;
     /** Transforms the Option into a Result, with a provided error value. */
     okOr<E>(this: Option<unknown>, err: E): Result<never, E>;
     /** Transforms the Option into a Result, with a provided error function.*/
@@ -89,7 +94,7 @@ export interface NoneType {
 /**
  * Represents an optional value: every Option is either Some with a value of type T or None.
  */
-export type Option<T> = SomeType<T> | NoneType;
+export type Option<T> = SomeType<T> | NoneType<T>;
 
 /** Creates a successful Result with the given value.
  * @param value The value of the successful computation.
@@ -130,6 +135,7 @@ export function Result<T, E>(value: T, err: E): Result<T, E> {
     return value === undefined || value === null ? Err(err) : Ok(value);
 }
 
+const getDefValue = <T>(df: ValueOrFn<T>) => typeof df === 'function' ? (df as (() => T))() : df;
 /**
  * Creates an Option with a value.
  * @param value The value to be wrapped in the Option.
@@ -148,12 +154,12 @@ export function Some<T>(value: T extends null | undefined ? never : T): Option<T
         isNone: () => false,
         map: (fn) => Some(fn(value)),
         flatMap: (fn) => fn(value),
-        okOr(_err) {
-            return Ok(value);
-        },
-        okOrElse(_errFn) {
-            return Ok(value);
-        },
+        okOr: (_err) => Ok(value),
+        okOrElse: (_errFn) => Ok(value),
+        mapOr: (fn, defaultValue) => {
+            const option = Option(fn(value));
+            return option.isNone() ? Option(getDefValue(defaultValue)) : option;
+        }
     };
 }
 
@@ -172,6 +178,7 @@ export const None: Option<never> = {
     flatMap: (_fn) => None,
     okOr: (err) => Err(err),
     okOrElse: (errFn) => Err(errFn()),
+    mapOr: (_fn, defaultValue) => Option(getDefValue(defaultValue))
 };
 
 /**

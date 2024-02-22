@@ -12,6 +12,7 @@ export interface Left<T, E> {
     isErr(this: Result<T, E>): this is Left<T, E>;
     /*** Returns true if the Result is successful, false otherwise.*/
     isOk(this: Result<T, E>): this is Right<T, E>;
+    /** Converts the Result into an Option. */
     toOption(): Option<T>;
 }
 /** Represents a successful computation.*/
@@ -28,6 +29,7 @@ export interface Right<T, E> {
     isErr(this: Result<T, E>): this is Left<T, E>;
     /*** Returns true if the Result is successful, false otherwise.*/
     isOk(this: Result<T, E>): this is Right<T, E>;
+    /** Converts the Result into an Option. */
     toOption(): Option<T>;
 }
 /**Represents the result of a computation that can either succeed with a value of type T or fail with an error of type E.*/
@@ -47,9 +49,10 @@ export interface SomeType<T> {
     /*** Returns true if the Option contains a value, false otherwise.*/
     isSome(this: Option<T>): this is SomeType<T>;
     /*** Returns true if the Option does not contain a value, false otherwise.*/
-    isNone(this: Option<T>): this is NoneType;
+    isNone(this: Option<T>): this is NoneType<T>;
     /** Applies a function to the contained value (if any), and returns an Option containing the result.*/
     map<U>(fn: (value: T) => Exclude<U, null | undefined>): Option<U>;
+    mapOr<U>(fn: (value: T) => Exclude<U, null | undefined>, defaultValue: ValueOrFn<U>): Option<U>;
     /** Applies a function to the contained value (if any), which itself returns an Option, and then flattens the result. */
     flatMap<U>(fn: (value: T) => Option<U>): Option<U>;
     /** Transforms the Option into a Result, with a provided error value. */
@@ -57,10 +60,11 @@ export interface SomeType<T> {
     /** Transforms the Option into a Result, with a provided error function.*/
     okOrElse<E>(this: Option<T>, _errFn: () => E): Result<T, E>;
 }
+type ValueOrFn<T> = T | (() => T);
 /**
  * Represents an Option that does not contain a value.
  */
-export interface NoneType {
+export interface NoneType<T = never> {
     type: 'none';
     /*** Throws an error because None does not contain a value.*/
     unwrap(): never;
@@ -69,13 +73,14 @@ export interface NoneType {
     /*** Calls the provided function and returns its result because None does not contain a value.*/
     unwrapOrElse<T>(fn: () => T): T;
     /*** Returns true if the Option contains a value, false otherwise.*/
-    isSome<T>(this: Option<T>): this is SomeType<T>;
+    isSome(this: Option<T>): this is SomeType<T>;
     /*** Returns true if the Option does not contain a value, false otherwise.*/
-    isNone<T>(this: Option<T>): this is NoneType;
+    isNone(this: Option<T>): this is NoneType<T>;
     /** Applies a function to the contained value (if any), and returns an Option containing the result.*/
-    map<U>(fn: (value: never) => U): Option<U>;
+    map<U>(fn: (value: T) => U): Option<U>;
+    mapOr<U>(fn: (value: T) => Exclude<U, null | undefined>, defaultValue: ValueOrFn<U>): Option<U>;
     /** Applies a function to the contained value (if any), which itself returns an Option, and then flattens the result. */
-    flatMap<U>(fn: (value: never) => Option<U>): Option<U>;
+    flatMap<U>(fn: (value: T) => Option<U>): Option<U>;
     /** Transforms the Option into a Result, with a provided error value. */
     okOr<E>(this: Option<unknown>, err: E): Result<never, E>;
     /** Transforms the Option into a Result, with a provided error function.*/
@@ -84,7 +89,7 @@ export interface NoneType {
 /**
  * Represents an optional value: every Option is either Some with a value of type T or None.
  */
-export type Option<T> = SomeType<T> | NoneType;
+export type Option<T> = SomeType<T> | NoneType<T>;
 /** Creates a successful Result with the given value.
  * @param value The value of the successful computation.
  * @returns A Result with the 'ok' type and the provided value.*/
@@ -134,3 +139,4 @@ export declare function Catch<R = any, E = any, Args extends any[] = any[], C = 
  * @returns A decorator function.
  */
 export declare function DefaultCatch<R = any, E = any, Args extends any[] = any[], C = any>(handler: Handler<R, E, Args, C>): (_target: any, _key: string, descriptor: PropertyDescriptor) => PropertyDescriptor;
+export {};
