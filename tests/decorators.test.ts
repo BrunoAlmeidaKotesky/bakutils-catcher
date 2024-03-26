@@ -1,4 +1,4 @@
-import { DefaultCatch, Catch, Result, Ok, Err, Left } from "../index";
+import { DefaultCatch, Catch, Result, Ok, Err, Left } from "../src";
 
 
 class ExtendedError extends Error {

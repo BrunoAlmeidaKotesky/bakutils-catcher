@@ -1,4 +1,4 @@
-import { None, Some } from "../index";
+import { None, Some } from "../src/index";
 
 describe("Mapping operations on Option", () => {
 

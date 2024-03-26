@@ -1,4 +1,4 @@
-import { Some, None, Ok, Err } from '../index';
+import { Some, None, Ok, Err } from '../src';
 
 describe('Conversion between Option and Result', () => {
     it('Should correctly Convert a Some Option to Result', () => {

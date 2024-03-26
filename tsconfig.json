@@ -32,7 +32,7 @@
       "types": ["node", "jest"]
     },
     "include": [
-      "index.ts",
+      "src/index.ts",
       "index.js"
     ]
   }

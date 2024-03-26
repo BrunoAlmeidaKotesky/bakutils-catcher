@@ -1,5 +1,5 @@
 
-import { isPromise, isFunction } from "../index";
+import { isPromise, isFunction } from "../src/Utils";
 
 function foo() { }
 const foobar = () => { }

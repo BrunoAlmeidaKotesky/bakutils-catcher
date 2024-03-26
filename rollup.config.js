@@ -2,7 +2,7 @@ import typescript from 'rollup-plugin-typescript2';
 
 export default [
     {
-        input: 'index.ts',
+        input: 'src/index.ts',
         output: {
             file: 'dist/index.js',
             format: 'esm', // "iife" para navegador, "cjs" para CommonJS, "esm" para ES modules
@@ -11,7 +11,7 @@ export default [
         plugins: [typescript()],
     },
     {
-        input: 'index.ts',
+        input: 'src/index.ts',
         output: {
             file: 'dist/index.cjs.js',
             format: 'cjs', // "iife" para navegador, "cjs" para CommonJS, "esm" para ES modules
