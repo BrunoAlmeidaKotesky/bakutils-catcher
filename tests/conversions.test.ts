@@ -47,14 +47,17 @@ describe('Conversion between Option and Result', () => {
 
     it('Should unwrap an Option with unwrapOr', () => {
         const opt = Option<number>(undefined);
-
         expect(opt.unwrapOr(4)).toBe(4);
         expect(opt.unwrapOr(() => 4)).toBe(4);
     });
 
-    it('Should allow unrwapping the value as undefined', () => {
-        const opt = Option(undefined);
-        expect(opt.unwrapOr()).toBe(undefined);
-        expect(opt.unwrapOr(() => undefined)).toBe(undefined);
+    it('Should allow unwrapping the value as undefined', () => {
+        const opt = Option<number>(null);
+        expect(opt.unwrapOrU()).toBe(undefined);
+    });
+
+    it('Should not be undefined', () => {
+        const opt = Option<number>(2);
+        expect(opt.unwrapOrU()).not.toBe(undefined);
     });
 });

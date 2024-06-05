@@ -14,27 +14,25 @@ export type Option<T> = SomeType<T> | NoneType<T>;
 
 /**
  * Represents an Option that contains a value.
- */
-export interface SomeType<T> extends MatchOption<T>, SomeFunctor<T> {
+ */export interface SomeType<T> extends MatchOption<T>, SomeFunctor<T> {
     type: 'some';
     value: T;
     /*** Returns the value of the Option if it exists, otherwise throws an error.*/
     unwrap(): T;
+    /*** Returns the value of the Option if it exists, otherwise returns undefined.*/
+    unwrapOrU(): T | undefined;
     /*** Returns the value of the Option if it exists, otherwise returns the provided default value.*/
     unwrapOr(defaultValue: ValueOrFn<T>): T;
-    unwrapOr(): T | undefined;
     /*** Returns true if the Option contains a value, false otherwise.*/
     isSome(this: Option<T>): this is SomeType<T>;
     /*** Returns true if the Option does not contain a value, false otherwise.*/
     isNone(this: Option<T>): this is NoneType<T>;
     /** Transforms the Option into a Result, with a provided error value. */
-    okOr<E>(this: Option<T>, _err: E): Result<T, E>;
-    /** Transforms the Option into a Result, with a provided error function.*/
-    okOrElse<E>(this: Option<T>, _errFn: () => E): Result<T, E>;
+    okOr<E>(this: Option<T>, _err: ValueOrFn<E>): Result<T, E>;
     /**Flat the value to a single level if the value is already an Option. */
     flatten(): Option<RemoveOption<T>>;
-    /** 
-     *@intenal
+    /**
+     *@internal
      *This method is used by default on `JSON.stringify` to serialize the object.
      *
      ***It does not need to be called directly.**
@@ -45,7 +43,6 @@ export interface SomeType<T> extends MatchOption<T>, SomeFunctor<T> {
     /**Creates a structured clone of the Option itself and the whole value tree. */
     clone(): this;
 }
-
 /**
  * Represents an Option that does not contain a value.
  */
@@ -53,17 +50,16 @@ export interface NoneType<T = never> extends MatchOption<T>, NoneFunctor<T> {
     type: 'none';
     /*** Throws an error because None does not contain a value.*/
     unwrap(): never;
+    /*** Returns the value of the Option if it exists, otherwise returns undefined.*/
+    unwrapOrU(): T | undefined;
     /*** Returns the provided default value because None does not contain a value.*/
     unwrapOr<T>(defaultValue: ValueOrFn<T>): T;
-    unwrapOr(): undefined;
     /*** Calls the provided function and returns its result because None does not contain a value.*/
     isSome(this: Option<T>): this is SomeType<T>;
     /*** Returns true if the Option does not contain a value, false otherwise.*/
     isNone(this: Option<T>): this is NoneType<T>;
     /** Transforms the Option into a Result, with a provided error value. */
-    okOr<E>(this: Option<unknown>, err: E): Result<never, E>;
-    /** Transforms the Option into a Result, with a provided error function.*/
-    okOrElse<E>(this: Option<unknown>, errFn: () => E): Result<never, E>;
+    okOr<E>(this: Option<unknown>, err: ValueOrFn<E>): Result<never, E>;
     /** This method is used by default on `JSON.stringify` to serialize the object.
      * It does not need to be called directly.
      */
@@ -73,7 +69,6 @@ export interface NoneType<T = never> extends MatchOption<T>, NoneFunctor<T> {
     /**Cloning a None will return the same None instance. */
     clone(): Option<T>;
 }
-
 
 /**
  * Checks if the provided value is an Option.
@@ -97,6 +92,7 @@ export function Some<T>(value: T extends null | undefined ? never : T): Option<T
         type: 'some',
         value,
         unwrap: () => value,
+        unwrapOrU: () => value as T | undefined,
         unwrapOr: () => value,
         isSome: () => true,
         isNone: () => false,
@@ -104,7 +100,6 @@ export function Some<T>(value: T extends null | undefined ? never : T): Option<T
         flatMap: (fn) => fn(value),
         flatMapAsync: async (fn) => fn(value),
         okOr: (_err) => Ok(value),
-        okOrElse: (_errFn) => Ok(value),
         mapOr: (fn, defaultValue) => {
             const option = Option(fn(value));
             return option.isNone() ? Option(getFnValue(defaultValue)) : option;
@@ -130,14 +125,14 @@ export function Some<T>(value: T extends null | undefined ? never : T): Option<T
 export const None: Option<never> = {
     type: 'none',
     unwrap: () => { throw new Error('Cannot unwrap None'); },
-    unwrapOr: <T>(defaultValue?: ValueOrFn<T>) => getFnValue(defaultValue),
+    unwrapOr: <T>(defaultValue: ValueOrFn<T>) => getFnValue(defaultValue),
+    unwrapOrU: <T>() => undefined as T | undefined,
     isSome: () => false,
     isNone: () => true,
     map: () => None,
     flatMap: (_fn) => None,
     flatMapAsync: async (_fn) => None,
-    okOr: (err) => Err(err),
-    okOrElse: (errFn) => Err(errFn()),
+    okOr: (err) => Err(getFnValue(err)),
     mapOr: (_fn, defaultValue) => Option(getFnValue(defaultValue)),
     toJSON: () => null,
     flatten: () => None,

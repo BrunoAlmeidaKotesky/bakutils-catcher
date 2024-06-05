@@ -137,6 +137,7 @@ function Some(value) {
         type: 'some',
         value,
         unwrap: () => value,
+        unwrapOrU: () => value,
         unwrapOr: () => value,
         isSome: () => true,
         isNone: () => false,
@@ -144,7 +145,6 @@ function Some(value) {
         flatMap: (fn) => fn(value),
         flatMapAsync: async (fn) => fn(value),
         okOr: (_err) => Ok(value),
-        okOrElse: (_errFn) => Ok(value),
         mapOr: (fn, defaultValue) => {
             const option = Option(fn(value));
             return option.isNone() ? Option(getFnValue(defaultValue)) : option;
@@ -170,13 +170,13 @@ const None = {
     type: 'none',
     unwrap: () => { throw new Error('Cannot unwrap None'); },
     unwrapOr: (defaultValue) => getFnValue(defaultValue),
+    unwrapOrU: () => undefined,
     isSome: () => false,
     isNone: () => true,
     map: () => None,
     flatMap: (_fn) => None,
     flatMapAsync: async (_fn) => None,
-    okOr: (err) => Err(err),
-    okOrElse: (errFn) => Err(errFn()),
+    okOr: (err) => Err(getFnValue(err)),
     mapOr: (_fn, defaultValue) => Option(getFnValue(defaultValue)),
     toJSON: () => null,
     flatten: () => None,
