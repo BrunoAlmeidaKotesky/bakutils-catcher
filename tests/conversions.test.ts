@@ -1,4 +1,4 @@
-import { Some, None, Ok, Err } from '../src';
+import { Some, None, Ok, Err, Option } from '../src';
 
 describe('Conversion between Option and Result', () => {
     it('Should correctly Convert a Some Option to Result', () => {
@@ -43,5 +43,18 @@ describe('Conversion between Option and Result', () => {
 
         expect(option.unwrap()).toBe(2);
         expect(optionErr.unwrap).toThrow();
+    });
+
+    it('Should unwrap an Option with unwrapOr', () => {
+        const opt = Option<number>(undefined);
+
+        expect(opt.unwrapOr(4)).toBe(4);
+        expect(opt.unwrapOr(() => 4)).toBe(4);
+    });
+
+    it('Should allow unrwapping the value as undefined', () => {
+        const opt = Option(undefined);
+        expect(opt.unwrapOr()).toBe(undefined);
+        expect(opt.unwrapOr(() => undefined)).toBe(undefined);
     });
 });

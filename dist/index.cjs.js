@@ -140,7 +140,6 @@ function Some(value) {
         value,
         unwrap: () => value,
         unwrapOr: () => value,
-        unwrapOrElse: () => value,
         isSome: () => true,
         isNone: () => false,
         map: (fn) => Some(fn(value)),
@@ -172,8 +171,7 @@ function Some(value) {
 const None = {
     type: 'none',
     unwrap: () => { throw new Error('Cannot unwrap None'); },
-    unwrapOr: (defaultValue) => defaultValue,
-    unwrapOrElse: (fn) => fn(),
+    unwrapOr: (defaultValue) => getFnValue(defaultValue),
     isSome: () => false,
     isNone: () => true,
     map: () => None,

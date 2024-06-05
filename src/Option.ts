@@ -1,7 +1,7 @@
 import { NoneFunctor, SomeFunctor } from "./Functor";
 import { MatchOption } from "./Match";
 import { Err, Ok, Result } from "./Result";
-import { getFnValue } from "./Utils";
+import { ValueOrFn, getFnValue } from "./Utils";
 
 /**
  * Extracts the value type from an Option.
@@ -21,9 +21,8 @@ export interface SomeType<T> extends MatchOption<T>, SomeFunctor<T> {
     /*** Returns the value of the Option if it exists, otherwise throws an error.*/
     unwrap(): T;
     /*** Returns the value of the Option if it exists, otherwise returns the provided default value.*/
-    unwrapOr(defaultValue: T): T;
-    /*** Returns the value of the Option if it exists, otherwise calls the provided function and returns its result.*/
-    unwrapOrElse(fn: () => T): T;
+    unwrapOr(defaultValue: ValueOrFn<T>): T;
+    unwrapOr(): T | undefined;
     /*** Returns true if the Option contains a value, false otherwise.*/
     isSome(this: Option<T>): this is SomeType<T>;
     /*** Returns true if the Option does not contain a value, false otherwise.*/
@@ -55,10 +54,9 @@ export interface NoneType<T = never> extends MatchOption<T>, NoneFunctor<T> {
     /*** Throws an error because None does not contain a value.*/
     unwrap(): never;
     /*** Returns the provided default value because None does not contain a value.*/
-    unwrapOr<T>(defaultValue: T): T;
+    unwrapOr<T>(defaultValue: ValueOrFn<T>): T;
+    unwrapOr(): undefined;
     /*** Calls the provided function and returns its result because None does not contain a value.*/
-    unwrapOrElse<T>(fn: () => T): T;
-    /*** Returns true if the Option contains a value, false otherwise.*/
     isSome(this: Option<T>): this is SomeType<T>;
     /*** Returns true if the Option does not contain a value, false otherwise.*/
     isNone(this: Option<T>): this is NoneType<T>;
@@ -100,7 +98,6 @@ export function Some<T>(value: T extends null | undefined ? never : T): Option<T
         value,
         unwrap: () => value,
         unwrapOr: () => value,
-        unwrapOrElse: () => value,
         isSome: () => true,
         isNone: () => false,
         map: (fn) => Some(fn(value)),
@@ -133,8 +130,7 @@ export function Some<T>(value: T extends null | undefined ? never : T): Option<T
 export const None: Option<never> = {
     type: 'none',
     unwrap: () => { throw new Error('Cannot unwrap None'); },
-    unwrapOr: <T>(defaultValue: T) => defaultValue,
-    unwrapOrElse: <T>(fn: () => T) => fn(),
+    unwrapOr: <T>(defaultValue?: ValueOrFn<T>) => getFnValue(defaultValue),
     isSome: () => false,
     isNone: () => true,
     map: () => None,
