@@ -60,4 +60,14 @@ describe('Conversion between Option and Result', () => {
         const opt = Option<number>(2);
         expect(opt.unwrapOrU()).not.toBe(undefined);
     });
+
+    it('Should return None if provided callback for Option throws an error', () => {
+        const opt = Option(() => { throw new Error('Error'); });
+        expect(opt.isNone()).toBe(true);
+    });
+
+    it('Should return Some if provided callback for Option does not throw an error', () => {
+        const opt = Option(() => 2);
+        expect(opt.unwrap()).toBe(2);
+    });
 });

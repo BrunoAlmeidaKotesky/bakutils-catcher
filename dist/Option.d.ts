@@ -82,7 +82,7 @@ export declare function Some<T>(value: T extends null | undefined ? never : T): 
 /**
  * Represents an empty Option with no value.
  *
- * An `None` is stringfied to `null` when using `JSON.stringify`.
+ * An `None` is stringified to `null` when using `JSON.stringify`.
  * @returns An Option with the 'none' type.
  */
 export declare const None: Option<never>;
@@ -93,4 +93,4 @@ export declare const None: Option<never>;
  *
  * This wrapper is useful when you want to convert a value that you don't know if it is defined or not.
  */
-export declare function Option<T>(value: T | undefined | null): Option<T>;
+export declare function Option<T>(value: ValueOrFn<T> | undefined | null): Option<T>;

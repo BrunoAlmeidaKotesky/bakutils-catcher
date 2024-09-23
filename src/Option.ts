@@ -119,7 +119,7 @@ export function Some<T>(value: T extends null | undefined ? never : T): Option<T
 /**
  * Represents an empty Option with no value.
  *
- * An `None` is stringfied to `null` when using `JSON.stringify`.
+ * An `None` is stringified to `null` when using `JSON.stringify`.
  * @returns An Option with the 'none' type.
  */
 export const None: Option<never> = {
@@ -148,6 +148,15 @@ Object.freeze(None);
  * 
  * This wrapper is useful when you want to convert a value that you don't know if it is defined or not.
  */
-export function Option<T>(value: T | undefined | null): Option<T> {
+export function Option<T>(value: ValueOrFn<T> | undefined | null): Option<T> {
+    if (typeof value === 'function') {
+        try {
+            const result = getFnValue(value);
+            return result === undefined || result === null ? None : Some(result);
+        } catch (err) {
+            console.error(err);
+            return None;
+        }
+    } 
     return value === undefined || value === null ? None : Some(value);
 }

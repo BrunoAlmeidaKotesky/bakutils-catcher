@@ -163,7 +163,7 @@ function Some(value) {
 /**
  * Represents an empty Option with no value.
  *
- * An `None` is stringfied to `null` when using `JSON.stringify`.
+ * An `None` is stringified to `null` when using `JSON.stringify`.
  * @returns An Option with the 'none' type.
  */
 const None = {
@@ -192,6 +192,16 @@ Object.freeze(None);
  * This wrapper is useful when you want to convert a value that you don't know if it is defined or not.
  */
 function Option(value) {
+    if (typeof value === 'function') {
+        try {
+            const result = getFnValue(value);
+            return result === undefined || result === null ? None : Some(result);
+        }
+        catch (err) {
+            console.error(err);
+            return None;
+        }
+    }
     return value === undefined || value === null ? None : Some(value);
 }
 
