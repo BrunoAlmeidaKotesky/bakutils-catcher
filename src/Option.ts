@@ -149,14 +149,11 @@ Object.freeze(None);
  * This wrapper is useful when you want to convert a value that you don't know if it is defined or not.
  */
 export function Option<T>(value: ValueOrFn<T> | undefined | null): Option<T> {
-    if (typeof value === 'function') {
-        try {
-            const result = BAKUtilsGetFnValue(value);
-            return result === undefined || result === null ? None : Some(result);
-        } catch (err) {
-            console.error(err);
-            return None;
-        }
-    } 
-    return value === undefined || value === null ? None : Some(value);
+    try {
+        const result = BAKUtilsGetFnValue(value);
+        return (result === undefined || result === null) ? None : Some(result);
+    } catch (err) {
+        console.error(err);
+        return None;
+    }
 }
