@@ -1,6 +1,6 @@
 {
     "name": "bakutils-catcher",
-    "version": "3.6.2",
+    "version": "4.0.0",
     "description": "Utility library for handling errors elegantly with Decorators and Rust-like algebraic types.",
     "scripts": {
         "build": "rollup -c",
@@ -32,6 +32,7 @@
         "@types/node": "^20.11.19",
         "jest": "^29.7.0",
         "rollup": "^3.28.1",
+        "rollup-plugin-esbuild-minify": "^1.1.2",
         "rollup-plugin-typescript2": "^0.35.0",
         "ts-jest": "^29.1.2",
         "ts-node": "^10.9.2",

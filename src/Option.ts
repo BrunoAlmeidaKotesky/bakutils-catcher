@@ -1,7 +1,7 @@
-import { NoneFunctor, SomeFunctor } from "./Functor";
-import { MatchOption } from "./Match";
-import { Err, Ok, Result } from "./Result";
-import { ValueOrFn, getFnValue } from "./Utils";
+import type { NoneFunctor, SomeFunctor } from "./Functor";
+import type { MatchOption } from "./Match";
+import { Err, Ok, type Result } from "./Result";
+import { type ValueOrFn, BAKUtilsGetFnValue } from "./Utils";
 
 /**
  * Extracts the value type from an Option.
@@ -102,7 +102,7 @@ export function Some<T>(value: T extends null | undefined ? never : T): Option<T
         okOr: (_err) => Ok(value),
         mapOr: (fn, defaultValue) => {
             const option = Option(fn(value));
-            return option.isNone() ? Option(getFnValue(defaultValue)) : option;
+            return option.isNone() ? Option(BAKUtilsGetFnValue(defaultValue)) : option;
         },
         flatten: () => {
             if (isOption(value) && value.isSome())
@@ -125,15 +125,15 @@ export function Some<T>(value: T extends null | undefined ? never : T): Option<T
 export const None: Option<never> = {
     type: 'none',
     unwrap: () => { throw new Error('Cannot unwrap None'); },
-    unwrapOr: <T>(defaultValue: ValueOrFn<T>) => getFnValue(defaultValue),
+    unwrapOr: <T>(defaultValue: ValueOrFn<T>) => BAKUtilsGetFnValue(defaultValue),
     unwrapOrU: <T>() => undefined as T | undefined,
     isSome: () => false,
     isNone: () => true,
     map: () => None,
     flatMap: (_fn) => None,
     flatMapAsync: async (_fn) => None,
-    okOr: (err) => Err(getFnValue(err)),
-    mapOr: (_fn, defaultValue) => Option(getFnValue(defaultValue)),
+    okOr: (err) => Err(BAKUtilsGetFnValue(err)),
+    mapOr: (_fn, defaultValue) => Option(BAKUtilsGetFnValue(defaultValue)),
     toJSON: () => null,
     flatten: () => None,
     match: (handlers) => handlers.None(),
@@ -151,7 +151,7 @@ Object.freeze(None);
 export function Option<T>(value: ValueOrFn<T> | undefined | null): Option<T> {
     if (typeof value === 'function') {
         try {
-            const result = getFnValue(value);
+            const result = BAKUtilsGetFnValue(value);
             return result === undefined || result === null ? None : Some(result);
         } catch (err) {
             console.error(err);

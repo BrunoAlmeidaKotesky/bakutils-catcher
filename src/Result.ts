@@ -93,3 +93,7 @@ export function Err<T, E>(error: E): Result<T, E> {
         flatMapAsync: async () => Err(error),
     };
 }
+/**Checks if the provided value is a Result.*/
+export function isResult<T, E>(result: any): result is Result<T, E> {
+    return result && ((result.type === 'ok' && 'value' in result) || (result.type === 'error' && 'error' in result));
+}

@@ -1,7 +1,7 @@
-import { NoneFunctor, SomeFunctor } from "./Functor";
-import { MatchOption } from "./Match";
-import { Result } from "./Result";
-import { ValueOrFn } from "./Utils";
+import type { NoneFunctor, SomeFunctor } from "./Functor";
+import type { MatchOption } from "./Match";
+import { type Result } from "./Result";
+import { type ValueOrFn } from "./Utils";
 /**
  * Extracts the value type from an Option.
  */

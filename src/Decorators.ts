@@ -1,7 +1,7 @@
-import { isPromise, isFunction } from "./Utils";
+import { BAKUtilsIsPromise, BAKUtilsIsFunction } from "./Utils";
 
 export type Handler<R = any, E = any, Args extends any[] = any[], C = any> = (err: E, context: C, ...args: Args) => R;
-function Factory<R = any, E = any, Args extends any[] = any[], C = any>(ErrorClassConstructor: Function | Handler<R, E, Args, C>, handler?: Handler<R, E, Args, C>) {
+function BAKUtilsCatchFactory<R = any, E = any, Args extends any[] = any[], C = any>(ErrorClassConstructor: Function | Handler<R, E, Args, C>, handler?: Handler<R, E, Args, C>) {
     return (_target: any, _key: string, descriptor: PropertyDescriptor) => {
         const { value } = descriptor;
         if (!handler) {
@@ -12,10 +12,10 @@ function Factory<R = any, E = any, Args extends any[] = any[], C = any>(ErrorCla
         descriptor.value = function (...args: any[]) {
             try {
                 const response = value.apply(this, args);
-                if (!isPromise(response)) return response;
+                if (!BAKUtilsIsPromise(response)) return response;
                 return response.catch((error) => {
                     if (
-                        isFunction(handler) &&
+                        BAKUtilsIsFunction(handler) &&
                         (ErrorClassConstructor === undefined ||
                             error instanceof ErrorClassConstructor)
                     ) {
@@ -25,7 +25,7 @@ function Factory<R = any, E = any, Args extends any[] = any[], C = any>(ErrorCla
                 });
             } catch (error) {
                 if (
-                    isFunction(handler) &&
+                    BAKUtilsIsFunction(handler) &&
                     (ErrorClassConstructor === undefined ||
                         error instanceof ErrorClassConstructor)
                 ) {
@@ -47,7 +47,7 @@ function Factory<R = any, E = any, Args extends any[] = any[], C = any>(ErrorCla
  * @returns A decorator function.
  */
 export function Catch<R = any, E = any, Args extends any[] = any[], C = any>(ErrorClassConstructor: Function, handler: Handler<R, E, Args, C>) {
-    return Factory(ErrorClassConstructor, handler);
+    return BAKUtilsCatchFactory(ErrorClassConstructor, handler);
 }
 
 /**
@@ -57,5 +57,5 @@ export function Catch<R = any, E = any, Args extends any[] = any[], C = any>(Err
  * @returns A decorator function.
  */
 export function DefaultCatch<R = any, E = any, Args extends any[] = any[], C = any>(handler: Handler<R, E, Args, C>) {
-    return Factory(handler);
+    return BAKUtilsCatchFactory(handler);
 }

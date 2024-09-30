@@ -1,5 +1,5 @@
 
-import { isPromise, isFunction } from "../src/Utils";
+import { BAKUtilsIsPromise, BAKUtilsIsFunction } from "../src/Utils";
 
 function foo() { }
 const foobar = () => { }
@@ -8,14 +8,14 @@ async function baz() { }
 describe('Function and Promise Utilities', () => {
     describe('isFunction utility', () => {
         it('should return true for regular functions', () => {
-            expect(isFunction(foo)).toBeTruthy();
-            expect(isFunction(foobar)).toBeTruthy();
+            expect(BAKUtilsIsFunction(foo)).toBeTruthy();
+            expect(BAKUtilsIsFunction(foobar)).toBeTruthy();
         });
     });
 
     describe('isPromise utility', () => {
         it('should return true for async function results', () => {
-            expect(isPromise(baz())).toBeTruthy();
+            expect(BAKUtilsIsPromise(baz())).toBeTruthy();
         });
     });
 });

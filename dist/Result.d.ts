@@ -48,3 +48,5 @@ export declare function Ok<T, E>(value: T): Result<T, E>;
  * @returns A Result with the 'error' type and the provided error.
  */
 export declare function Err<T, E>(error: E): Result<T, E>;
+/**Checks if the provided value is a Result.*/
+export declare function isResult<T, E>(result: any): result is Result<T, E>;

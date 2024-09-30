@@ -1,22 +1,19 @@
 import typescript from 'rollup-plugin-typescript2';
+import { minify } from 'rollup-plugin-esbuild-minify';
 
-export default [
-    {
-        input: 'src/index.ts',
-        output: {
-            file: 'dist/index.js',
-            format: 'esm', // "iife" para navegador, "cjs" para CommonJS, "esm" para ES modules
-            name: 'bakutils-catcher', // Nome da variável global
-        },
-        plugins: [typescript()],
+/**@type {import('rollup').RollupOptions}*/
+const build = {
+    input: 'src/index.ts',
+    output: {
+        file: 'dist/index.js',
+        format: 'esm',
+        name: 'bakutils-catcher',
+        compact: true,
     },
-    {
-        input: 'src/index.ts',
-        output: {
-            file: 'dist/index.cjs.js',
-            format: 'cjs', // "iife" para navegador, "cjs" para CommonJS, "esm" para ES modules
-            name: 'bakutils-catcher', // Nome da variável global
-        },
-        plugins: [typescript()],
-    }
-]
+    plugins: [
+        typescript(),
+        minify()
+    ],
+};
+
+export default build;
