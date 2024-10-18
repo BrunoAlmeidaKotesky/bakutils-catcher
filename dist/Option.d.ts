@@ -85,7 +85,7 @@ export declare function Some<T>(value: T extends null | undefined ? never : T): 
  * An `None` is stringified to `null` when using `JSON.stringify`.
  * @returns An Option with the 'none' type.
  */
-export declare const None: Option<never>;
+export declare const None: NoneType;
 /**
  *
  * @param value A value that may contain a value or be undefined or null.

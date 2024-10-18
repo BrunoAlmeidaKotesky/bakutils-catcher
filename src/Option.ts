@@ -122,7 +122,7 @@ export function Some<T>(value: T extends null | undefined ? never : T): SomeType
  * An `None` is stringified to `null` when using `JSON.stringify`.
  * @returns An Option with the 'none' type.
  */
-export const None: Option<never> = {
+export const None: NoneType = {
     type: 'none',
     unwrap: () => { throw new Error('Cannot unwrap None'); },
     unwrapOr: <T>(defaultValue: ValueOrFn<T>) => BAKUtilsGetFnValue(defaultValue),
