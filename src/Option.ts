@@ -1,4 +1,4 @@
-import type { NoneFunctor, SomeFunctor } from "./Functor";
+import type { BaseOptionFunctor } from "./Functor";
 import type { MatchOption } from "./Match";
 import { Err, Ok, type Result } from "./Result";
 import { type ValueOrFn, BAKUtilsGetFnValue } from "./Utils";
@@ -14,7 +14,7 @@ export type Option<T> = SomeType<T> | NoneType<T>;
 
 /**
  * Represents an Option that contains a value.
- */export interface SomeType<T> extends MatchOption<T>, SomeFunctor<T> {
+ */export interface SomeType<T> extends MatchOption<T>, BaseOptionFunctor<T> {
     type: 'some';
     value: T;
     /*** Returns the value of the Option if it exists, otherwise throws an error.*/
@@ -46,7 +46,7 @@ export type Option<T> = SomeType<T> | NoneType<T>;
 /**
  * Represents an Option that does not contain a value.
  */
-export interface NoneType<T = never> extends MatchOption<T>, NoneFunctor<T> {
+export interface NoneType<T = never> extends MatchOption<T>, BaseOptionFunctor<T> {
     type: 'none';
     /*** Throws an error because None does not contain a value.*/
     unwrap(): never;
@@ -96,7 +96,7 @@ export function Some<T>(value: T extends null | undefined ? never : T): SomeType
         unwrapOr: () => value,
         isSome: () => true,
         isNone: () => false,
-        map: (fn) => Some(fn(value)),
+        map: <U>(fn: (value: T) => U extends null | undefined ? never : U) => Some(fn(value)),
         flatMap: (fn) => fn(value),
         flatMapAsync: async (fn) => fn(value),
         okOr: (_err) => Ok(value),
