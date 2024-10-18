@@ -78,7 +78,7 @@ export declare function isOption<T>(value: unknown): value is Option<T>;
  * @param value The value to be wrapped in the Option.
  * @returns An Option with the 'some' type and the provided value.
  */
-export declare function Some<T>(value: T extends null | undefined ? never : T): Option<T>;
+export declare function Some<T>(value: T extends null | undefined ? never : T): SomeType<T>;
 /**
  * Represents an empty Option with no value.
  *

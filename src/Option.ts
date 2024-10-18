@@ -85,7 +85,7 @@ export function isOption<T>(value: unknown): value is Option<T> {
  * @param value The value to be wrapped in the Option.
  * @returns An Option with the 'some' type and the provided value.
  */
-export function Some<T>(value: T extends null | undefined ? never : T): Option<T> {
+export function Some<T>(value: T extends null | undefined ? never : T): SomeType<T> {
     if (value === null || value === undefined)
         throw new Error("Some() cannot be called with null or undefined");
     return {

@@ -26,7 +26,7 @@ describe('Conversion between Option and Result', () => {
     });
 
     it('Should unwrap an Option to Result', () => {
-        const some = Some(2);
+        const some: Option<number> = Some(2);
         const someResult = some.okOr('Error');
         const none = None;
         const noneResult = none.okOr('Error');

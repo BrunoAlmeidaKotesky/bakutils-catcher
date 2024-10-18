@@ -4,7 +4,7 @@ describe("Mapping operations on Option", () => {
 
     it('Should transform the value from a Some Option to another value', () => {
         const value = Some(2);
-        const mapped = value.map<number>(x => x * 2);
+        const mapped = value.map(x => x * 2);
         expect(mapped.unwrap()).toBe(4);
     });
 

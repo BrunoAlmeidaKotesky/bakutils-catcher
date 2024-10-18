@@ -1,130 +1,289 @@
-## bakutils-catcher
-This library is a lightweight, easy-to-use, with Decorators, to catch exceptions and errors in your code and Algebraic Data Types with Rust-like features with `Result` and `Option`.
 
-For a better understanding of the `Option` and `Result` type features, i recommend that you read the following article [Enhancing TypeScript: Implementing Robust Error Handling with Result and Option](https://dev.to/brunoalmeidakotesky/enhancing-typescript-implementing-robust-error-handling-with-result-and-option-o5j)
+# bakutils-catcher
 
-*Note*: When using the decorators features, make sure that the `tsconfig.json` file has the `experimentalDecorators` and `emitDecoratorMetadata` properties enabled and [reflect-metadata]() library is installed/imported. Since this library is meant to have zero dependencies, it is not included in the package.
+`bakutils-catcher` is a lightweight, easy-to-use TypeScript library providing utilities for robust error handling and functional programming patterns inspired by Rust. It includes:
 
-#### Installation
-Please follow the standard npm package installation steps.
+- **Decorators**: For catching exceptions and errors in your code using TypeScript decorators.
+- **Algebraic Data Types**: Implementations of `Result`, `Option`, and `OneOf` types for expressive and safe error handling.
+- **Utilities**: Helper functions and types to support the main features.
+
+
+## Table of Content
+- [Installation](#installation)
+- [Algebraic Data Types](#algebraic-data-types)
+    - [Result](#result)
+    - [Option](#option)
+    - [OneOf](#oneof)
+- [Decorators](#decorators)
+    -[Catch](#catch)
+    -[Default Catch](#defaultcatch)
+- [Quick Start](#quick-start)
+- [License](#license)
+
+## Installation
+
+Install the package via npm, yarn, or pnpm:
+
 ```shell
+# npm
 npm install bakutils-catcher
-#or
+
+# yarn
 yarn add bakutils-catcher
-#or
+
+# pnpm
 pnpm add bakutils-catcher
 ```
 
-*Note*: Make sure to include reflect-metadata as it's required for decorators but is not included as a dependency in this package.
+## Features
 
-### Features
+### Algebraic Data Types
 
-##### Algebraic Data Types
-###### Result
-The Result type can either be a Left representing a failed computation or a Right representing a successful computation.
+#### `Result`
 
-- **Left**: Represents a failed computation.
-    - .unwrap(): Returns the value of the Result if it is successful, otherwise throws an error.
-    - .unwrapOr(defaultValue): Returns the value of the Result if it is successful, otherwise returns the - provided default value.
-    - .unwrapOrElse(fn): Returns the value of the Result if it is successful, otherwise calls the - provided function with the error and returns its result.
-    - .isErr(): Returns true if the Result is an error, false otherwise.
-    - .isOk(): Returns true if the Result is successful, false otherwise.
+The `Result` type represents either success (`Ok`) or failure (`Err`) of an operation, providing expressive error handling without exceptions.
 
-- **Right**: Represents a successful computation.
-    - .unwrap(): Returns the value of the Result.
-    - .unwrapOr(defaultValue): Returns the value of the Result.
-    - .unwrapOrElse(fn): Returns the value of the Result.
-    - .isErr(): Returns true if the Result is an error, false otherwise.
-    - .isOk(): Returns true if the Result is successful, false otherwise.
+- **`Ok`**: Represents a successful computation.
+  - **Methods**:
+    - `unwrap()`: Returns the contained value.
+    - `unwrapOr(defaultValue)`: Returns the contained value.
+    - `unwrapOrElse(fn)`: Returns the contained value.
+    - `isOk()`: Returns `true`.
+    - `isErr()`: Returns `false`.
+    - `map(fn)`: Applies a function to the contained value, returning a new `Result`.
+    - `flatMap(fn)`: Applies a function that returns a `Result`, flattening the result.
+    - `toOption()`: Converts `Ok` to `Some`.
+    - `match(handlers)`: Pattern matches on `Ok`.
+- **`Err`**: Represents a failed computation.
+  - **Methods**:
+    - `unwrap()`: Throws the contained error.
+    - `unwrapOr(defaultValue)`: Returns `defaultValue`.
+    - `unwrapOrElse(fn)`: Calls `fn` with the error and returns its result.
+    - `isOk()`: Returns `false`.
+    - `isErr()`: Returns `true`.
+    - `map(fn)`: Returns `Err` without applying `fn`.
+    - `flatMap(fn)`: Returns `Err` without applying `fn`.
+    - `toOption()`: Converts `Err` to `None`.
+    - `match(handlers)`: Pattern matches on `Err`.
 
-###### Option
-The Option type can either be Some representing an existing value or None representing no value.
+**Usage Example**:
 
-- **Some**: Represents an Option that contains a value.
-    - .unwrap(): Returns the value of the Option if it exists, otherwise throws an error.
-    - .unwrapOr(defaultValue): Returns the value of the Option if it exists, otherwise returns the - provided default value.
-    - .unwrapOrElse(fn): Returns the value of the Option if it exists, otherwise calls the provided - function and returns its result.
-    - .isSome(): Returns true if the Option contains a value, false otherwise.
-    - .isNone(): Returns true if the Option does not contain a value, false otherwise.
-- **None**: Represents an Option that does not contain a value.
-    - .unwrap(): Throws an error because None does not contain a value.
-    - .unwrapOr(defaultValue): Returns the provided default value because None does not contain a value.
-    - .unwrapOrElse(fn): Calls the provided function and returns its result because None does not contain a value.
-    - .isSome(): Returns true if the Option contains a value, false otherwise.
-    - .isNone(): Returns true if the Option does not contain a value, false otherwise.
+```typescript
+import { Ok, Err, Result } from 'bakutils-catcher';
 
-You can wrap any value with the `Option` function (Not the type) on cases where you are not sure if the value is `null` or `undefined`.
-```ts
-import {Option, Some} from 'bakutils-catcher';
-let unknownRunTimeValue = /*...*/;
-//TypeScript will infer if you are using Option as a type or as a function.
-const someValue = Option(unknownRunTimeValue);
-const typedSomeValue: Option<number> = Some(unknownRunTimeValue);
+function parseJSON(jsonString: string): Result<any, Error> {
+  try {
+    const data = JSON.parse(jsonString);
+    return Ok(data);
+  } catch (error) {
+    return Err(error);
+  }
+}
+
+const result = parseJSON('{"valid": "json"}');
+
+result.match({
+  Ok: (data) => console.log('Parsed data:', data),
+  Err: (error) => console.error('Parsing failed:', error),
+});
 ```
 
-##### Decorators
-###### Catch
-A TypeScript decorator that wraps a class method with error-handling logic. It catches errors of a specific type thrown within the decorated method.
+#### `Option`
 
-**Usage**
+The `Option` type represents an optional value: every `Option` is either `Some` and contains a value, or `None`, and does not.
 
-```ts
-class SomeThing {
-    @Catch(MyError, (err, context, ...args) => {
-    // handle error here
-    })
-    public myMethodWithoutTryCatch() {}
+- **`Some`**: Represents an `Option` that contains a value.
+  - **Methods**:
+    - `unwrap()`: Returns the contained value.
+    - `unwrapOr(defaultValue)`: Returns the contained value.
+    - `unwrapOrElse(fn)`: Returns the contained value.
+    - `isSome()`: Returns `true`.
+    - `isNone()`: Returns `false`.
+    - `map(fn)`: Applies a function to the contained value, returning a new `Option`.
+    - `flatMap(fn)`: Applies a function that returns an `Option`, flattening the result.
+    - `okOr(err)`: Converts `Some` to `Ok`.
+    - `match(handlers)`: Pattern matches on `Some`.
+- **`None`**: Represents an `Option` with no value.
+  - **Methods**:
+    - `unwrap()`: Throws an error.
+    - `unwrapOr(defaultValue)`: Returns `defaultValue`.
+    - `unwrapOrElse(fn)`: Calls `fn` and returns its result.
+    - `isSome()`: Returns `false`.
+    - `isNone()`: Returns `true`.
+    - `map(fn)`: Returns `None` without applying `fn`.
+    - `flatMap(fn)`: Returns `None` without applying `fn`.
+    - `okOr(err)`: Converts `None` to `Err`.
+    - `match(handlers)`: Pattern matches on `None`.
+
+**Usage Example**:
+
+```typescript
+import { Option, Some, None } from 'bakutils-catcher';
+
+function getConfigValue(key: string): Option<string> {
+  const value = process.env[key];
+  return value ? Some(value) : None;
+}
+
+const configValue = getConfigValue('API_KEY');
+
+if (configValue.isSome()) {
+  console.log('API Key:', configValue.unwrap());
+} else {
+  console.error('API Key is not set');
 }
 ```
 
-###### DefaultCatch
-A TypeScript decorator that wraps a class method with error-handling logic. It catches all errors thrown within the decorated method.
+#### `OneOf`
 
-**Usage**
+The `OneOf` type represents a value that can be one of several possible types, each identified by a label. It's similar to a tagged union or variant type.
 
-```ts
-class SomeThing {
-    @DefaultCatch((err, context, ...args) => {
-    // handle error here
-    })
-    public myMethodWithoutTryCatch() {}
+**Usage Example**:
+
+```typescript
+import { createOneOf, OneOf } from 'bakutils-catcher';
+
+// Define labels and corresponding types
+type Shape = {
+  Circle: { radius: number };
+  Square: { side: number };
+  Rectangle: { width: number; height: number };
+};
+
+// Create instances of OneOf
+const circle: OneOf<Shape> = createOneOf('Circle', { radius: 5 });
+const square: OneOf<Shape> = createOneOf('Square', { side: 10 });
+
+// Use the `match` method to handle each shape
+function area(shape: OneOf<Shape>): number {
+  return shape.match({
+    Circle: ({ radius }) => Math.PI * radius ** 2,
+    Square: ({ side }) => side ** 2,
+    Rectangle: ({ width, height }) => width * height,
+  });
+}
+
+console.log('Circle area:', area(circle)); // Circle area: 78.53981633974483
+console.log('Square area:', area(square)); // Square area: 100
+```
+
+**Methods**:
+
+- `match(handlers)`: Matches the variant with the corresponding handler function.
+- `is(label)`: Type guard to check if the variant matches the specified label, refining the type of `value`.
+
+
+### Decorators
+
+Decorators provide a way to add annotations and a meta-programming syntax for class declarations and members.
+
+**Note**: When using decorators, make sure your `tsconfig.json` file has the `experimentalDecorators` and `emitDecoratorMetadata` properties enabled. Additionally, if an handler is not configured, you can install the [`reflect-metadata`](https://www.npmjs.com/package/reflect-metadata) library, as it works for decorators but not included in this package to keep it dependency-free.
+
+#### `@Catch`
+
+A decorator that wraps a class method with error-handling logic, catching errors of a specific type thrown within the method.
+
+**Usage**:
+
+```typescript
+import { Catch } from 'bakutils-catcher';
+
+class FileReader {
+  @Catch(FileNotFoundError, (err, context, ...args) => {
+    console.error('File not found:', err);
+    return null; // Provide a fallback value
+  })
+  readFile(path: string): string | null {
+    // Implementation that might throw FileNotFoundError
+  }
 }
 ```
 
-### Quick Start
-Here's a quick example to get you started:
+#### `@DefaultCatch`
 
-```ts
-import { Ok, Err, Some, None, Catch, DefaultCatch } from 'bakutils-catcher';
+A decorator that wraps a class method with error-handling logic, catching all errors thrown within the method.
+
+**Usage**:
+
+```typescript
+import { DefaultCatch } from 'bakutils-catcher';
+
+class DataService {
+  @DefaultCatch((err, context, ...args) => {
+    console.error('An error occurred:', err);
+    // Handle the error, possibly returning a fallback value
+  })
+  fetchData(url: string): Data {
+    // Implementation that might throw errors
+  }
+}
+```
+
+
+## Quick Start
+
+Here's a quick example demonstrating how to use the main features of the library:
+
+```typescript
+import {
+  Ok,
+  Err,
+  Option,
+  Some,
+  None,
+  createOneOf,
+  OneOf,
+  Catch,
+  DefaultCatch,
+} from 'bakutils-catcher';
 
 // Using Result
-const goodResult = Ok("Success");
-const badResult = Err("Failure");
+function calculate(a: number, b: number): Result<number, string> {
+  if (b === 0) {
+    return Err('Cannot divide by zero');
+  }
+  return Ok(a / b);
+}
 
 // Using Option
 const someValue = Some(42);
 const noValue = None;
 
-// Using Catch Decorator
-class MyClass {
-  @Catch(MyError, (err) => {
-    console.log("Caught a MyError:", err);
-  })
-  myMethod() {
-    throw new MyError("Oops!");
-  }
-}
+// Using OneOf
+type Response = {
+  Success: { data: any };
+  Error: { message: string };
+};
 
-// Using DefaultCatch Decorator
-class AnotherClass {
-  @DefaultCatch((err) => {
-    console.log("Caught an error:", err);
+const response: OneOf<Response> = createOneOf('Error', { message: 'Not Found' });
+
+response.match({
+  Success: ({ data }) => console.log('Data:', data),
+  Error: ({ message }) => console.error('Error:', message),
+});
+
+// Using Decorators
+class ApiService {
+  @Catch(NetworkError, (err, context, ...args) => {
+    console.error('Network error:', err);
+    return null; // Fallback value
   })
-  anotherMethod() {
-    throw new Error("Oops again!");
+  fetchData(endpoint: string): Data | null {
+    // Implementation that might throw NetworkError
+  }
+
+  @DefaultCatch((err, context, ...args) => {
+    console.error('Unhandled error:', err);
+    // Handle error
+  })
+  processData(data: Data): void {
+    // Implementation that might throw errors
   }
 }
 ```
 
-License
+---
+
+## License
+
 This project is licensed under the MIT License.
