@@ -15,8 +15,8 @@
     - [Option](#option)
     - [OneOf](#oneof)
 - [Decorators](#decorators)
-    -[Catch](#catch)
-    -[Default Catch](#defaultcatch)
+    -[Catcher](#catcher)
+    -[Default Catcher](#defaultcatch)
 - [Quick Start](#quick-start)
 - [License](#license)
 
@@ -173,23 +173,25 @@ console.log('Square area:', area(square)); // Square area: 100
 - `is(label)`: Type guard to check if the variant matches the specified label, refining the type of `value`.
 
 
-### Decorators
+## Decorators
 
 Decorators provide a way to add annotations and a meta-programming syntax for class declarations and members.
 
-**Note**: When using decorators, make sure your `tsconfig.json` file has the `experimentalDecorators` and `emitDecoratorMetadata` properties enabled. Additionally, if an handler is not configured, you can install the [`reflect-metadata`](https://www.npmjs.com/package/reflect-metadata) library, as it works for decorators but not included in this package to keep it dependency-free.
+**Note**: When using decorators, make sure your `tsconfig.json` file has the `experimentalDecorators` and `emitDecoratorMetadata` properties enabled. Additionally, if a handler is not configured, you can install the [`reflect-metadata`](https://www.npmjs.com/package/reflect-metadata) library, as it works for decorators but is not included in this package to keep it dependency-free.
 
-#### `@Catch`
+**Update**: In version ^5.0.0, the `Catch` decorator was renamed to `Catcher`, and `DefaultCatch` was renamed to `DefaultCatcher` to maintain consistency with the function names.
+
+### `@Catcher`
 
 A decorator that wraps a class method with error-handling logic, catching errors of a specific type thrown within the method.
 
 **Usage**:
 
 ```typescript
-import { Catch } from 'bakutils-catcher';
+import { Catcher } from 'bakutils-catcher';
 
 class FileReader {
-  @Catch(FileNotFoundError, (err, context, ...args) => {
+  @Catcher(FileNotFoundError, (err, context, ...args) => {
     console.error('File not found:', err);
     return null; // Provide a fallback value
   })
@@ -199,17 +201,17 @@ class FileReader {
 }
 ```
 
-#### `@DefaultCatch`
+### `@DefaultCatcher`
 
 A decorator that wraps a class method with error-handling logic, catching all errors thrown within the method.
 
 **Usage**:
 
 ```typescript
-import { DefaultCatch } from 'bakutils-catcher';
+import { DefaultCatcher } from 'bakutils-catcher';
 
 class DataService {
-  @DefaultCatch((err, context, ...args) => {
+  @DefaultCatcher((err, context, ...args) => {
     console.error('An error occurred:', err);
     // Handle the error, possibly returning a fallback value
   })
@@ -219,6 +221,65 @@ class DataService {
 }
 ```
 
+### `catcher` function
+
+The `catcher` function allows you to wrap any function with error-handling logic, catching errors of a specific type. This is useful when you cannot use decorators or prefer a functional approach.
+
+**Usage**:
+
+```typescript
+import { catcher } from 'bakutils-catcher';
+
+class CustomError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "CustomError";
+    }
+}
+
+function riskyOperation(value: number): string {
+    if (value < 0) throw new CustomError("Negative value not allowed");
+    return value.toFixed(2);
+}
+
+const safeOperation = catcher(
+    riskyOperation,
+    CustomError,
+    (err, context, value) => {
+        console.error("Caught CustomError:", err.message);
+        return "Fallback Value";
+    }
+);
+
+console.log(safeOperation(-1)); // Output: "Fallback Value"
+console.log(safeOperation(10)); // Output: "10.00"
+```
+
+### `defaultCatcher` function
+
+The `defaultCatcher` function allows you to wrap any function with error-handling logic, catching all errors. This is similar to `catcher` but does not require specifying an error class.
+
+**Usage**:
+
+```typescript
+import { defaultCatcher } from 'bakutils-catcher';
+
+function anotherRiskyOperation(value: string): number {
+    if (isNaN(Number(value))) throw new Error("Invalid number");
+    return Number(value);
+}
+
+const safeAnotherOperation = defaultCatcher(
+    anotherRiskyOperation,
+    (err, context, value) => {
+        console.error("Caught an error:", err.message);
+        return 0;
+    }
+);
+
+console.log(safeAnotherOperation("abc")); // Output: 0
+console.log(safeAnotherOperation("123")); // Output: 123
+```
 
 ## Quick Start
 
@@ -233,7 +294,7 @@ import {
   None,
   createOneOf,
   OneOf,
-  Catch,
+  Catcher,
   DefaultCatch,
 } from 'bakutils-catcher';
 
@@ -264,7 +325,7 @@ response.match({
 
 // Using Decorators
 class ApiService {
-  @Catch(NetworkError, (err, context, ...args) => {
+  @Catcher(NetworkError, (err, context, ...args) => {
     console.error('Network error:', err);
     return null; // Fallback value
   })

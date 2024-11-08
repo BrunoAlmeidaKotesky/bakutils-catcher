@@ -1,4 +1,4 @@
-import { DefaultCatch, Catch, Result, Ok, Err, Left } from "../src";
+import { DefaultCatcher, Catcher, Result, Ok, Err, Left } from "../src";
 
 
 class ExtendedError extends Error {
@@ -18,9 +18,9 @@ const BAR_ERROR_MESSAGE = 'bar';
 type ErrorResult = { err: ExtendedError | Error, value: PossibleErrors };
 class FooBar {
     //@ts-ignore
-    @DefaultCatch<void, Error, [boolean]>((_err, _ctx, params) => params)
+    @DefaultCatcher<void, Error, [boolean]>((_err, _ctx, params) => params)
     //@ts-ignore
-    @Catch<void, ExtendedError, [boolean]>(ExtendedError, (_err, _ctx, params) => {
+    @Catcher<void, ExtendedError, [boolean]>(ExtendedError, (_err, _ctx, params) => {
         return params
     })
     static foo(defaultThrow: boolean) {
@@ -28,14 +28,14 @@ class FooBar {
         throw new ExtendedError("foo");
     }
     //@ts-ignore
-    @DefaultCatch<void, ExtendedError>((err) => err.message)
+    @DefaultCatcher<void, ExtendedError>((err) => err.message)
     async bar() {
         throw new ExtendedError(BAR_ERROR_MESSAGE);
     }
     //@ts-ignore
-    @DefaultCatch<ErrorResult, Error>((err, _ctx, params) => Err({ err, value: params }))
+    @DefaultCatcher<ErrorResult, Error>((err, _ctx, params) => Err({ err, value: params }))
     //@ts-ignore
-    @Catch<ErrorResult, ExtendedError, [boolean]>(ExtendedError, (err, _ctx, param) => Err({ err, value: param }))
+    @Catcher<ErrorResult, ExtendedError, [boolean]>(ExtendedError, (err, _ctx, param) => Err({ err, value: param }))
     async resultMethod(value: PossibleErrors): Promise<Result<PossibleErrors, ErrorResult>> {
         if (value === PossibleErrors.EXTENDED) {
             throw new ExtendedError('An error occurred');
