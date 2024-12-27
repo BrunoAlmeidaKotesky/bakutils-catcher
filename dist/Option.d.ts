@@ -40,6 +40,8 @@ export type Option<T> = SomeType<T> | NoneType<T>;
     toJSON(): void;
     /**Creates a structured clone of the Option itself and the whole value tree. */
     clone(): this;
+    /*** Returns a string representation of the Option. */
+    toString(): string;
 }
 /**
  * Represents an Option that does not contain a value.
@@ -66,6 +68,8 @@ export interface NoneType<T = never> extends MatchOption<T>, BaseOptionFunctor<T
     flatten(): Option<RemoveOption<T>>;
     /**Cloning a None will return the same None instance. */
     clone(): Option<T>;
+    /*** Returns a string representation of the Option. */
+    toString(): string;
 }
 /**
  * Checks if the provided value is an Option.

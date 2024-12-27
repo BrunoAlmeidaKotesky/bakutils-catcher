@@ -42,6 +42,8 @@ export type Option<T> = SomeType<T> | NoneType<T>;
     toJSON(): void;
     /**Creates a structured clone of the Option itself and the whole value tree. */
     clone(): this;
+    /*** Returns a string representation of the Option. */
+    toString(): string;
 }
 /**
  * Represents an Option that does not contain a value.
@@ -68,6 +70,8 @@ export interface NoneType<T = never> extends MatchOption<T>, BaseOptionFunctor<T
     flatten(): Option<RemoveOption<T>>;
     /**Cloning a None will return the same None instance. */
     clone(): Option<T>;
+    /*** Returns a string representation of the Option. */
+    toString(): string;
 }
 
 /**
@@ -112,7 +116,8 @@ export function Some<T>(value: T extends null | undefined ? never : T): SomeType
         },
         match: (handlers) => handlers.Some(value),
         toJSON: () => value,
-        clone: () => structuredClone(this)
+        clone: () => structuredClone(this),
+        toString: () => value.toString ? value.toString() : `Some(${value})`
     };
 }
 
@@ -137,7 +142,8 @@ export const None: NoneType = {
     toJSON: () => null,
     flatten: () => None,
     match: (handlers) => handlers.None(),
-    clone: () => None
+    clone: () => None,
+    toString: () => 'none'
 };
 Object.freeze(None);
 
