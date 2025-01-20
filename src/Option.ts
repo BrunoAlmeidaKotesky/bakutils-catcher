@@ -100,7 +100,9 @@ export function Some<T>(value: T extends null | undefined ? never : T): SomeType
         unwrapOr: () => value,
         isSome: () => true,
         isNone: () => false,
-        map: <U>(fn: (value: T) => U extends null | undefined ? never : U) => Some(fn(value)),
+        map<U>(fn: (value: T) => U): Option<U> {
+            return Option(() => fn(value));
+        },
         flatMap: (fn) => fn(value),
         flatMapAsync: async (fn) => fn(value),
         okOr: (_err) => Ok(value),

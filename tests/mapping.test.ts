@@ -39,4 +39,11 @@ describe("Mapping operations on Option", () => {
         expect(mappedNone.unwrap()).toBe(0);
         expect(mappedSome.unwrap()).toBe(4);
     });
+
+    it('Should not fail because map verify the callback', () => {
+        const obj = { value: { nested: undefined } };
+        const some = Some(obj);
+        const mapped = some.map(x => x.value.nested);
+        expect(mapped.type).toBe('none')
+    });
 });

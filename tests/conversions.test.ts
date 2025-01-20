@@ -62,14 +62,20 @@ describe('Conversion between Option and Result', () => {
     });
 
     it('Should return None if provided callback for Option throws an error', () => {
-        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
         const opt = Option(() => { throw new Error('Error'); });
         expect(opt.isNone()).toBe(true);
         consoleErrorSpy.mockRestore();
     });
-    
+
     it('Should return Some if provided callback for Option does not throw an error', () => {
         const opt = Option(() => 2);
         expect(opt.unwrap()).toBe(2);
+    });
+
+    it('Should return none because operation is unvalid', () => {
+        const fnToFail = () => (null as unknown as string)?.toLowerCase();
+        const opt = Option(fnToFail);
+        expect(opt.isNone()).toBe(true);
     });
 });
