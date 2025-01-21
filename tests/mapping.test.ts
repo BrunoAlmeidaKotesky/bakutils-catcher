@@ -46,4 +46,12 @@ describe("Mapping operations on Option", () => {
         const mapped = some.map(x => x.value.nested);
         expect(mapped.type).toBe('none')
     });
+
+    it('Should map to a default value if the nested value is undefined', () => {
+        const obj = { value: { nested: undefined as unknown as string } };
+        const some = Some(obj);
+        const mapped = some.mapOr<string>(x => x.value.nested, 'default');
+        expect(mapped.type).toBe('some');
+        expect(mapped.unwrap()).toBe('default');
+    });
 });

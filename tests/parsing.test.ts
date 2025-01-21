@@ -8,7 +8,7 @@ describe("Parsing operations on Option", () => {
         expect(JSON.stringify(createObj(None))).toBe('{"value":{"nested":null}}');
     });
 
-    it('Ensures that a JSON.parse on a object with Some Option will return the original value', () => {
+    it('Ensures that a JSON.stringfy on a object with Some Option will return the original value', () => {
         expect(JSON.stringify(createObj(Option(1)))).toBe('{"value":{"nested":1}}');
     });
 });
