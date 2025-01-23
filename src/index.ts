@@ -5,3 +5,4 @@ export * from './Utils';
 export * from './Functor';
 export * from './Match';
 export * from './OneOf';
+export * from './ResultTry';
