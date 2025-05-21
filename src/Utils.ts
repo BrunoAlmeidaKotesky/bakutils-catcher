@@ -1,6 +1,10 @@
 
 export function BAKUtilsIsPromise<T = any>(object: any): object is Promise<T> {
-    return object && object instanceof Promise;
+    return object && object instanceof Promise
+}
+
+export function BAKUtilsIsPromiseLike<T = any>(object: any): object is PromiseLike<T> {
+    return object && typeof object === 'object' && typeof object.then === 'function';
 }
 
 export function BAKUtilsIsFunction(func: any): func is Function {

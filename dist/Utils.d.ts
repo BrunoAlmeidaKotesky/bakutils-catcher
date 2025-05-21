@@ -1,4 +1,5 @@
 export declare function BAKUtilsIsPromise<T = any>(object: any): object is Promise<T>;
+export declare function BAKUtilsIsPromiseLike<T = any>(object: any): object is PromiseLike<T>;
 export declare function BAKUtilsIsFunction(func: any): func is Function;
 export type ValueOrFn<T> = T | (() => T);
 /**

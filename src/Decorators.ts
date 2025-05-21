@@ -1,7 +1,6 @@
-import { BAKUtilsIsPromise, BAKUtilsIsFunction } from "./Utils";
+import { BAKUtilsIsPromise, BAKUtilsIsFunction, BAKUtilsIsPromiseLike } from "./Utils";
 
 export type Handler<R = any, E = any, Args extends any[] = any[], C = any> = (err: E, context: C, ...args: Args) => R;
-
 /**
  * Factory function to create the core catch handler for both decorators and function wrappers.
  */
@@ -10,32 +9,47 @@ function BAKUtilsCatchFactory<R = any, E extends Error = Error, Args extends any
     handler: Handler<R, InstanceType<typeof ErrorClassConstructor>, Args, C>
 ) {
     return (_target: any, _key: string, descriptor: PropertyDescriptor) => {
-        const { value } = descriptor;
+        const originalMethod = descriptor.value;
 
         descriptor.value = function (...args: any[]) {
+            let result;
             try {
-                const response = value.apply(this, args);
-                if (!BAKUtilsIsPromise(response)) return response;
-                return response.catch((error: E) => {
+                result = originalMethod.apply(this, args);
+            } catch (syncError) {
+                if (
+                    BAKUtilsIsFunction(handler) &&
+                    (ErrorClassConstructor === undefined || syncError instanceof ErrorClassConstructor)
+                ) {
+                    return handler.call(null, syncError, this, ...args);
+                }
+                throw syncError;
+            }
+            // If it's a native Promise
+            if (BAKUtilsIsPromise(result)) {
+                return (result as Promise<any>).catch((error: E) => {
                     if (
                         BAKUtilsIsFunction(handler) &&
-                        (ErrorClassConstructor === undefined ||
-                            error instanceof ErrorClassConstructor)
+                        (ErrorClassConstructor === undefined || error instanceof ErrorClassConstructor)
                     ) {
                         return handler.call(null, error, this, ...args);
                     }
                     throw error;
                 });
-            } catch (error) {
-                if (
-                    BAKUtilsIsFunction(handler) &&
-                    (ErrorClassConstructor === undefined ||
-                        error instanceof ErrorClassConstructor)
-                ) {
-                    return handler.call(null, error, this, ...args);
-                }
-                throw error;
             }
+            // If it's a PromiseLike (thenable)
+            if (BAKUtilsIsPromiseLike(result)) {
+                return Promise.resolve(result as PromiseLike<any>).catch((error: E) => {
+                    if (
+                        BAKUtilsIsFunction(handler) &&
+                        (ErrorClassConstructor === undefined || error instanceof ErrorClassConstructor)
+                    ) {
+                        return handler.call(null, error, this, ...args);
+                    }
+                    throw error;
+                });
+            }
+            // Not a promise
+            return result;
         };
 
         return descriptor;
@@ -55,29 +69,41 @@ export function catcher<R = any, E extends Error = Error, Args extends any[] = a
     handler: Handler<R, InstanceType<typeof ErrorClassConstructor>, Args, C>
 ): (...args: Args) => R | Promise<R> {
     return function (...args: Args): R | Promise<R> {
+        let result;
         try {
-            const response = fn(...args);
-            if (!BAKUtilsIsPromise(response)) return response;
-            return response.catch((error: E) => {
+            result = fn(...args);
+        } catch (syncError) {
+            if (
+                BAKUtilsIsFunction(handler) &&
+                (ErrorClassConstructor === undefined || syncError instanceof ErrorClassConstructor)
+            ) {
+                return handler.call(null, syncError, this as C, ...args);
+            }
+            throw syncError;
+        }
+        if (BAKUtilsIsPromise(result)) {
+            return (result as Promise<any>).catch((error: E) => {
                 if (
                     BAKUtilsIsFunction(handler) &&
-                    (ErrorClassConstructor === undefined ||
-                        error instanceof ErrorClassConstructor)
+                    (ErrorClassConstructor === undefined || error instanceof ErrorClassConstructor)
                 ) {
                     return handler.call(null, error, this as C, ...args);
                 }
                 throw error;
             });
-        } catch (error) {
-            if (
-                BAKUtilsIsFunction(handler) &&
-                (ErrorClassConstructor === undefined ||
-                    error instanceof ErrorClassConstructor)
-            ) {
-                return handler.call(null, error, this as C, ...args);
-            }
-            throw error;
         }
+        if (BAKUtilsIsPromiseLike(result)) {
+            return Promise.resolve(result as PromiseLike<any>).catch((error: E) => {
+                if (
+                    BAKUtilsIsFunction(handler) &&
+                    (ErrorClassConstructor === undefined || error instanceof ErrorClassConstructor)
+                ) {
+                    return handler.call(null, error, this as C, ...args);
+                }
+                throw error;
+            });
+        }
+        return result;
     };
 }
 
@@ -93,6 +119,7 @@ export function defaultCatcher<R = any, Args extends any[] = any[], C = any>(
 ): (...args: Args) => R | Promise<R> {
     return catcher(fn, Error, handler);
 }
+
 /**
  * Catch decorator: A TypeScript decorator that wraps a class method with error handling logic.
  * It catches errors of a specific type that are thrown within the decorated method.
