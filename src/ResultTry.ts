@@ -58,32 +58,23 @@ export async function ResultTry<
     errorCase?: ErrorCase<E, Fn>
 ): Promise<Result<AsyncReturnType<Fn>, E>> {
     try {
-        // Call fn with the provided arguments
         const result = fn(...(args ?? []));
-
-        // If the result is a promise, await it
-        if (result instanceof Promise) {
-            const awaited = await result;
+        if (result != null && typeof (result as any).then === "function") {
+            const awaited = await Promise.resolve(result as PromiseLike<any>);
             return Ok<AsyncReturnType<Fn>, E>(awaited as AsyncReturnType<Fn>);
         }
-        // Otherwise it's sync
         return Ok<AsyncReturnType<Fn>, E>(result as AsyncReturnType<Fn>);
-
     } catch (originalError) {
-        // If errorCase is a function, call it with (error, ...args)
         if (typeof errorCase === "function") {
-            const mappedError = (errorCase as (err: unknown, ...args: Parameters<Fn>) => E)(
-                originalError,
-                //@ts-ignore
-                ...(args ?? [])
-            );
+            const mappedError = (errorCase as (
+                err: unknown,
+                ...a: Parameters<Fn>
+            ) => E)(originalError, ...(args ?? [] as unknown as Parameters<Fn>));
             return Err<AsyncReturnType<Fn>, E>(mappedError);
         }
-        // If it's a fixed error instance
         if (errorCase) {
-            return Err<AsyncReturnType<Fn>, E>(errorCase);
+            return Err<AsyncReturnType<Fn>, E>(errorCase as E);
         }
-        // Otherwise return the original error
         return Err<AsyncReturnType<Fn>, E>(originalError as E);
     }
 }
