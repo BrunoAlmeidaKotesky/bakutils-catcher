@@ -1,14 +1,14 @@
 import { catcher, defaultCatcher } from "../src";
 
-describe("PromiseLike support (custom thenable)", () => {
+describe("Suporte a PromiseLike (thenable customizado)", () => {
     function thenableFn(shouldFail: boolean): PromiseLike<string> {
         return {
             then(onFulfilled, onRejected) {
                 setTimeout(() => {
                     if (shouldFail) {
-                        onRejected!(new Error("thenable failure"));
+                        onRejected!(new Error("falha no thenable"));
                     } else {
-                        onFulfilled!("thenable ok");
+                        onFulfilled!("ok do thenable");
                     }
                 }, 0);
                 return this;
@@ -16,41 +16,56 @@ describe("PromiseLike support (custom thenable)", () => {
         };
     }
 
-    it("defaultCatcher should catch errors from a custom thenable", async () => {
+    it("defaultCatcher captura erro de um thenable customizado", async () => {
         const safe = defaultCatcher(
             thenableFn,
             async err => `fallback: ${err.message}`
         );
 
-        // success case
-        await expect(safe(false)).resolves.toBe("thenable ok");
-        // failure case
-        await expect(safe(true)).resolves.toBe("fallback: thenable failure");
+        // caso sem falha
+        await expect(safe(false)).resolves.toBe("ok do thenable");
+        await expect(safe(true)).resolves.toBe("fallback: falha no thenable");
     });
 
-    it("catcher should only handle specific Error type in thenable", async () => {
-        class MyError extends Error { }
-        function thenableErrors(flag: boolean): PromiseLike<string> {
+    it("catcher trata apenas erros do tipo Error específico em thenable", async () => {
+        class MeuErro extends Error { }
+        function thenableErros(a: boolean): PromiseLike<string> {
             return {
                 then(onF, onR) {
                     setTimeout(() => {
-                        if (flag) onR!(new MyError("my error"));
-                        else onF!("my success");
+                        if (a) onR!(new MeuErro("erro meu"));
+                        else onF!("sucesso meu");
                     }, 0);
                     return this;
                 }
             };
         }
 
-        const safeMyError = catcher(
-            thenableErrors,
-            MyError,
-            async err => `caught MyError: ${err.message}`
+        const safeSóMeuErro = catcher(
+            thenableErros,
+            MeuErro,
+            async err => `peguei MeuErro: ${err.message}`
         );
 
-        // success with no error
-        await expect(safeMyError(false)).resolves.toBe("my success");
-        // MyError case
-        await expect(safeMyError(true)).resolves.toBe("caught MyError: my error");
+        await expect(safeSóMeuErro(false)).resolves.toBe("sucesso meu");
+        await expect(safeSóMeuErro(true)).resolves.toBe("peguei MeuErro: erro meu");
+    });
+
+    const xrm = (fail: boolean): any => {
+        const obj: any = {
+            then(ok: any, bad: any) {
+                setTimeout(() => (fail ? bad?.({ errorCode: 500, message: 'Xrm fail' })
+                    : ok?.('Xrm ok')), 0);
+                return obj;
+            },
+            catch(bad: any) { return obj.then(undefined, bad); }
+        };
+        return obj;
+    };
+
+    it('defaultCatcher Promise Like', async () => {
+        const safe = defaultCatcher(xrm, err => `fallback: ${err.message}`);
+        await expect(safe(false)).resolves.toBe('Xrm ok');
+        await expect(safe(true)).resolves.toBe('fallback: Xrm fail');
     });
 });

@@ -1,5 +1,5 @@
 import { Result } from "./Result";
-type AsyncReturnType<F extends (...args: any) => any> = F extends (...args: any[]) => Promise<infer R> ? R : ReturnType<F>;
+type AsyncRet<F extends (...args: any) => any> = F extends (...args: any[]) => Promise<infer R> ? R : ReturnType<F>;
 /**
  * An error-case type which may be:
  * - A fixed error instance of type `E`
@@ -42,5 +42,5 @@ export type ErrorCase<E, Fn extends (...args: any[]) => any> = E | ((error: unkn
  * async function fetchData(id: number): Promise<string> { ... }
  * const r3 = await ResultTry(fetchData, [42]);
  */
-export declare function ResultTry<Fn extends (...args: any[]) => any, E = Error>(fn: Fn, args?: Parameters<Fn>, errorCase?: ErrorCase<E, Fn>): Promise<Result<AsyncReturnType<Fn>, E>>;
+export declare function ResultTry<Fn extends (...args: any[]) => any, E = Error>(fn: Fn, args?: Parameters<Fn>, errorCase?: ErrorCase<E, Fn>): Promise<Result<AsyncRet<Fn>, E>>;
 export {};

@@ -1,31 +1,84 @@
-export type Handler<R = any, E = any, Args extends any[] = any[], C = any> = (err: E, context: C, ...args: Args) => R;
 /**
- * Encapsulates a function with error handling logic.
- * @param fn - The function to be wrapped.
- * @param ErrorClassConstructor - The constructor of the specific error type to catch.
- * @param handler - The function to handle the caught error.
- * @returns A new function with error handling.
+ * Signature for a user‑supplied *error handler*.
+ *
+ * @template R Return type of the handler (becomes the resolved value of the wrapper).
+ * @template E Error type that will be forwarded to the handler.
+ * @template A Tuple of the original function parameters.
+ * @template C Runtime `this` context inside the wrapper.
+ *
+ * @example
+ * ```ts
+ * const logAndReturnNull: Handler<null, Error> = (err) => {
+ *   console.error('Ouch →', err.message);
+ *   return null; // caller receives `null`
+ * };
+ * ```
  */
-export declare function catcher<R = any, E extends Error = Error, Args extends any[] = any[], C = any>(fn: (...args: Args) => R, ErrorClassConstructor: new (...args: any[]) => E, handler: Handler<R, InstanceType<typeof ErrorClassConstructor>, Args, C>): (...args: Args) => R | Promise<R>;
+export type Handler<R = any, E = any, A extends any[] = any[], C = any> = (err: E, context: C, ...args: A) => R;
 /**
- * Encapsulates a function with a default error handler that catches all errors.
- * @param fn - The function to be wrapped.
- * @param handler - The function to handle the caught error.
- * @returns A new function with error handling.
+ * `@Catcher(SpecificError, handler)` — catch **only** a specific error subclass.
+ *
+ * @example
+ * ```ts
+ * class DBError extends Error {}
+ *
+ * class Repo {
+ *   @Catcher(DBError, (e) => console.warn('DB down:', e.message))
+ *   query() { throw new DBError('timeout'); }
+ * }
+ * new Repo().query(); // logged but not re‑thrown
+ * ```
  */
-export declare function defaultCatcher<R = any, Args extends any[] = any[], C = any>(fn: (...args: Args) => R, handler: Handler<R, Error, Args, C>): (...args: Args) => R | Promise<R>;
+export declare const Catcher: (ErrCls: any, h: any) => (_t: any, _k: string, d: PropertyDescriptor) => PropertyDescriptor;
 /**
- * Catch decorator: A TypeScript decorator that wraps a class method with error handling logic.
- * It catches errors of a specific type that are thrown within the decorated method.
- * @param ErrorClassConstructor - The constructor of the specific error type to catch.
- * @param handler - The function to handle the caught error.
- * @returns A decorator function.
+ * `@DefaultCatcher(handler)` — catch **all** throwables (alias for `Error`).
+ *
+ * @example
+ * ```ts
+ * class Svc {
+ *   @DefaultCatcher((e) => console.error('Boom →', e))
+ *   risky() { throw new RangeError('🙅'); }
+ * }
+ * ```
  */
-export declare function Catcher<R = any, E extends Error = Error, Args extends any[] = any[], C = any>(ErrorClassConstructor: new (...args: any[]) => E, handler: Handler<R, InstanceType<typeof ErrorClassConstructor>, Args, C>): (_target: any, _key: string, descriptor: PropertyDescriptor) => PropertyDescriptor;
+export declare const DefaultCatcher: (h: any) => (_t: any, _k: string, d: PropertyDescriptor) => PropertyDescriptor;
 /**
- * DefaultCatch decorator: A TypeScript decorator that wraps a class method with error handling logic.
- * It catches all errors that are thrown within the decorated method.
- * @param handler - The function to handle the caught error.
- * @returns A decorator function.
+ * `@AnyErrorCatcher(handler)` — catch literally *anything* (no instance checks).
+ *
+ * @example
+ * ```ts
+ * class Whatever {
+ *   @AnyErrorCatcher(() => 'fallback')
+ *   run() { throw 'string‑error'; }
+ * }
+ * new Whatever().run(); // → "fallback"
+ * ```
  */
-export declare function DefaultCatcher<R = any, Args extends any[] = any[], C = any>(handler: Handler<R, Error, Args, C>): (_target: any, _key: string, descriptor: PropertyDescriptor) => PropertyDescriptor;
+export declare const AnyErrorCatcher: <R, A extends any[] = any[], C = any>(handler: Handler<R, any, A, C>) => (_t: any, _k: string, d: PropertyDescriptor) => PropertyDescriptor;
+/**
+ * `defaultCatcher(fn, handler)` — wrap a function and intercept **any** error.
+ *
+ * @example
+ * ```ts
+ * const safeJSON = defaultCatcher(
+ *   (txt: string) => JSON.parse(txt),
+ *   () => ({})
+ * );
+ * safeJSON('{ bad'); // → {}
+ * ```
+ */
+export declare function defaultCatcher<R = any, A extends any[] = any[], C = any>(fn: (...a: A) => any, handler: Handler<R, Error, A, C>): (...a: A) => R | Promise<R>;
+/**
+ * `catcher(fn, SpecificError, handler)` — function wrapper variant of `@Catcher`.
+ *
+ * @example
+ * ```ts
+ * const run = catcher(
+ *   () => { if (Math.random() < .5) throw new TypeError('bad'); return 'ok'; },
+ *   TypeError,
+ *   () => 'recovered'
+ * );
+ * run(); // either 'ok' or 'recovered'
+ * ```
+ */
+export declare function catcher<R = any, E extends Error = Error, A extends any[] = any[], C = any>(fn: (...a: A) => any, ErrCls: new (...a: any[]) => E, handler: Handler<R, E, A, C>): (...a: A) => R | Promise<R>;

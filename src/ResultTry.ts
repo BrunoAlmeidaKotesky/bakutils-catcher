@@ -1,8 +1,10 @@
 import { Result, Ok, Err } from "./Result";
+import { BAKUtilsIsPromise, BAKUtilsIsThenable, BAKUtilsIsXrmPromiseLike } from './Utils';
 
-type AsyncReturnType<F extends (...args: any) => any> = F extends (...args: any[]) => Promise<infer R>
+type AsyncRet<F extends (...args: any) => any> = F extends (...args: any[]) => Promise<infer R>
     ? R
     : ReturnType<F>;
+
 
 /**
  * An error-case type which may be:
@@ -56,25 +58,33 @@ export async function ResultTry<
     fn: Fn,
     args?: Parameters<Fn>,
     errorCase?: ErrorCase<E, Fn>
-): Promise<Result<AsyncReturnType<Fn>, E>> {
+): Promise<Result<AsyncRet<Fn>, E>> {
     try {
-        const result = fn(...(args ?? []));
-        if (result != null && typeof (result as any).then === "function") {
-            const awaited = await Promise.resolve(result as PromiseLike<any>);
-            return Ok<AsyncReturnType<Fn>, E>(awaited as AsyncReturnType<Fn>);
+        const raw = fn(...(args ?? []));
+
+        if (BAKUtilsIsPromise(raw)) {
+            const v = await raw;
+            return Ok<AsyncRet<Fn>, E>(v as AsyncRet<Fn>);
         }
-        return Ok<AsyncReturnType<Fn>, E>(result as AsyncReturnType<Fn>);
-    } catch (originalError) {
-        if (typeof errorCase === "function") {
-            const mappedError = (errorCase as (
-                err: unknown,
-                ...a: Parameters<Fn>
-            ) => E)(originalError, ...(args ?? [] as unknown as Parameters<Fn>));
-            return Err<AsyncReturnType<Fn>, E>(mappedError);
+
+        if (BAKUtilsIsXrmPromiseLike(raw)) {
+            const v = await new Promise<any>((res, rej) =>
+                (raw as any).then(res).catch(rej)
+            );
+            return Ok<AsyncRet<Fn>, E>(v as AsyncRet<Fn>);
         }
-        if (errorCase) {
-            return Err<AsyncReturnType<Fn>, E>(errorCase as E);
+
+        if (BAKUtilsIsThenable(raw)) {
+            const v = await Promise.resolve(raw);
+            return Ok<AsyncRet<Fn>, E>(v as AsyncRet<Fn>);
         }
-        return Err<AsyncReturnType<Fn>, E>(originalError as E);
+
+        return Ok<AsyncRet<Fn>, E>(raw as AsyncRet<Fn>);
+    } catch (orig) {
+        const mapped =
+            typeof errorCase === 'function'
+                ? (errorCase as any)(orig, ...(args ?? []))
+                : errorCase ?? (orig as E);
+        return Err<AsyncRet<Fn>, E>(mapped);
     }
 }

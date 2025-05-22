@@ -1,6 +1,15 @@
-export declare function BAKUtilsIsPromise<T = any>(object: any): object is Promise<T>;
-export declare function BAKUtilsIsPromiseLike<T = any>(object: any): object is PromiseLike<T>;
-export declare function BAKUtilsIsFunction(func: any): func is Function;
+export declare function BAKUtilsIsPromise<T = any>(o: any): o is Promise<T>;
+export declare function BAKUtilsIsThenable<T = any>(o: any): o is PromiseLike<T>;
+export declare function BAKUtilsIsXrmPromiseLike<T = any>(o: any): o is PromiseLike<T> & {
+    catch: Function;
+};
+export declare function BAKUtilsIsFunction(fn: any): fn is Function;
+export interface ErrorCallbackObject {
+    errorCode: number;
+    message: string;
+    [k: string]: any;
+}
+export declare function BAKUtilsIsXrmError(obj: any): obj is ErrorCallbackObject;
 export type ValueOrFn<T> = T | (() => T);
 /**
 * Internal function to get the value of a ValueOrFn type.

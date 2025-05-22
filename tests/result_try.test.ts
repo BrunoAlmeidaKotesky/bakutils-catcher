@@ -1,4 +1,4 @@
-import { ResultTry } from "../src";
+import { ResultTry, Right } from "../src";
 
 class MyCustomError extends Error {
   constructor(message: string) {
@@ -83,4 +83,34 @@ describe("ResultTry - Parameter Inference", () => {
       expect(res.error.message).toBe('Mapped async fail for "": Empty string!');
     }
   });
+});
+
+
+it('ResultTry with pure thenable', async () => {
+  const thenable = (fail: boolean): PromiseLike<number> => ({
+    then(ok, bad) { fail ? bad?.(new Error('boom')) : ok?.(42); return this; }
+  });
+
+  const okRes = await ResultTry(thenable, [false]);
+  expect(okRes.type).toBe('ok');
+  expect((okRes as Right<any, Error>).value).toBe(42);
+
+  const errRes = await ResultTry(thenable, [true], new Error('mapped'));
+  expect(errRes.type).toBe('error');
+});
+
+it('ResultTry with Xrm like object', async () => {
+  const xrm = (fail: boolean): any => {
+    const o: any = {
+      then(ok: any, bad: any) { fail ? bad?.({ errorCode: 1, message: 'err' }) : ok?.(7); return o; },
+      catch(cb: any) { return o.then(undefined, cb); }
+    };
+    return o;
+  };
+
+  const okR = await ResultTry(xrm, [false]);
+  expect(okR.type).toBe('ok');
+
+  const errR = await ResultTry(xrm, [true], (e: any) => new Error(`mapped: ${e.message}`));
+  expect(errR.type).toBe('error');
 });
