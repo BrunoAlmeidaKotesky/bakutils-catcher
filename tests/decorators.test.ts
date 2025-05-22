@@ -33,7 +33,7 @@ class FooBar {
         throw new ExtendedError(BAR_ERROR_MESSAGE);
     }
     //@ts-ignore
-    @DefaultCatcher<ErrorResult, Error>((err, _ctx, params) => Err({ err, value: params }))
+    @DefaultCatcher<ErrorResult, Error>((err, _ctx, ...params) => Err({ err, value: params }))
     //@ts-ignore
     @Catcher<ErrorResult, ExtendedError, [boolean]>(ExtendedError, (err, _ctx, param) => Err({ err, value: param }))
     async resultMethod(value: PossibleErrors): Promise<Result<PossibleErrors, ErrorResult>> {

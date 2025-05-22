@@ -16,12 +16,7 @@ import { BAKUtilsIsPromise, BAKUtilsIsThenable, BAKUtilsIsXrmPromiseLike, BAKUti
  * };
  * ```
  */
-export type Handler<R = any, E = any, A extends any[] = any[], C = any> = (
-    err: E,
-    context: C,
-    ...args: A
-) => R;
-
+export type Handler<R = any, E = any, A extends any[] = any[], C = any> = (err: E, context: C, ...args: A) => R;
 type ErrCtor<E> = (new (...p: any[]) => E) | undefined;
 
 /**
@@ -92,8 +87,17 @@ function makeDecorator<R, E, A extends any[], C>(
  * new Repo().query(); // logged but not re‑thrown
  * ```
  */
-export const Catcher = (ErrCls: any, h: any) =>
-    makeDecorator<any, any, any[], any>(ErrCls, h);
+export function Catcher<
+  R = any,
+  E extends Error = Error,
+  A extends any[] = any[],
+  C = any,
+>(
+  ErrCls: new (...p: any[]) => E,
+  handler: Handler<R, E, A, C>,
+) {
+  return makeDecorator<R, E, A, C>(ErrCls, handler);
+}
 
 /**
  * `@DefaultCatcher(handler)` — catch **all** throwables (alias for `Error`).
@@ -106,7 +110,12 @@ export const Catcher = (ErrCls: any, h: any) =>
  * }
  * ```
  */
-export const DefaultCatcher = (h: any) => Catcher(Error, h);
+export function DefaultCatcher<R = any, Args extends any[] = any[], C = any>(
+    handler: Handler<R, Error, Args, C>
+) {
+  return Catcher<R, Error, Args, C>(Error, handler);
+}
+
 
 /**
  * `@AnyErrorCatcher(handler)` — catch literally *anything* (no instance checks).
@@ -120,9 +129,13 @@ export const DefaultCatcher = (h: any) => Catcher(Error, h);
  * new Whatever().run(); // → "fallback"
  * ```
  */
-export const AnyErrorCatcher = <R, A extends any[] = any[], C = any>(
-    handler: Handler<R, any, A, C>,
-) => makeDecorator<R, any, A, C>(undefined, handler);
+export function AnyErrorCatcher<
+  R = any,
+  A extends any[] = any[],
+  C = any,
+>(handler: Handler<R, unknown, A, C>) {
+  return makeDecorator<R, unknown, A, C>(undefined, handler);
+}
 
 /* -------------------------------------------------------------------------- */
 /**

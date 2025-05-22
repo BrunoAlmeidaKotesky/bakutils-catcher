@@ -29,7 +29,7 @@ export type Handler<R = any, E = any, A extends any[] = any[], C = any> = (err: 
  * new Repo().query(); // logged but not re‑thrown
  * ```
  */
-export declare const Catcher: (ErrCls: any, h: any) => (_t: any, _k: string, d: PropertyDescriptor) => PropertyDescriptor;
+export declare function Catcher<R = any, E extends Error = Error, A extends any[] = any[], C = any>(ErrCls: new (...p: any[]) => E, handler: Handler<R, E, A, C>): (_t: any, _k: string, d: PropertyDescriptor) => PropertyDescriptor;
 /**
  * `@DefaultCatcher(handler)` — catch **all** throwables (alias for `Error`).
  *
@@ -41,7 +41,7 @@ export declare const Catcher: (ErrCls: any, h: any) => (_t: any, _k: string, d: 
  * }
  * ```
  */
-export declare const DefaultCatcher: (h: any) => (_t: any, _k: string, d: PropertyDescriptor) => PropertyDescriptor;
+export declare function DefaultCatcher<R = any, Args extends any[] = any[], C = any>(handler: Handler<R, Error, Args, C>): (_t: any, _k: string, d: PropertyDescriptor) => PropertyDescriptor;
 /**
  * `@AnyErrorCatcher(handler)` — catch literally *anything* (no instance checks).
  *
@@ -54,7 +54,7 @@ export declare const DefaultCatcher: (h: any) => (_t: any, _k: string, d: Proper
  * new Whatever().run(); // → "fallback"
  * ```
  */
-export declare const AnyErrorCatcher: <R, A extends any[] = any[], C = any>(handler: Handler<R, any, A, C>) => (_t: any, _k: string, d: PropertyDescriptor) => PropertyDescriptor;
+export declare function AnyErrorCatcher<R = any, A extends any[] = any[], C = any>(handler: Handler<R, unknown, A, C>): (_t: any, _k: string, d: PropertyDescriptor) => PropertyDescriptor;
 /**
  * `defaultCatcher(fn, handler)` — wrap a function and intercept **any** error.
  *
