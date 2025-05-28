@@ -19,6 +19,7 @@ describe("Mapping operations on Option", () => {
     it('Should try to map an None Option using mapOr', () => {
         const none = None;
         const mapped = none.mapOr<number>(x => x * 2, 0);
+        mapped.isSome();
         expect(mapped.type).toBe('some');
         expect(mapped.unwrap()).toBe(0);
     });

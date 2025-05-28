@@ -28,7 +28,7 @@ class FooBar {
         throw new ExtendedError("foo");
     }
     //@ts-ignore
-    @DefaultCatcher<void, ExtendedError>((err) => err.message)
+    @DefaultCatcher((err, method, _ctx, ...args) => err.message)
     async bar() {
         throw new ExtendedError(BAR_ERROR_MESSAGE);
     }

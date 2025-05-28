@@ -21,7 +21,20 @@ export type Option<T> = SomeType<T> | NoneType<T>;
     unwrapOrU(): T | undefined;
     /*** Returns the value of the Option if it exists, otherwise returns the provided default value.*/
     unwrapOr(defaultValue: ValueOrFn<T>): T;
-    /*** Returns true if the Option contains a value, false otherwise.*/
+    /*** Returns true if the Option contains a value, false otherwise.
+    *
+    * Also supports passing an **optional** value to be compared with the possible stored value.
+    *
+    * If the value is not provided, it will return true if the Option contains a value.
+    *
+    * If the value is different **it will return false** even though if the Option contains a value.
+    * @example
+    * ```ts
+    * const option = Some(5);
+    * option.isSome(5); // This avoids the need to unwrap the value and compare it.
+    *```
+    */
+    isSome(this: Option<T>, value?: T): this is SomeType<T>;
     isSome(this: Option<T>): this is SomeType<T>;
     /*** Returns true if the Option does not contain a value, false otherwise.*/
     isNone(this: Option<T>): this is NoneType<T>;
@@ -54,7 +67,12 @@ export interface NoneType<T = never> extends MatchOption<T>, BaseOptionFunctor<T
     unwrapOrU(): T | undefined;
     /*** Returns the provided default value because None does not contain a value.*/
     unwrapOr<T>(defaultValue: ValueOrFn<T>): T;
-    /*** Calls the provided function and returns its result because None does not contain a value.*/
+    /*** Calls the provided function and returns its result because None does not contain a value.
+    *
+    * Also supports passing a value to already be compared with the possible stored value.
+    *
+    */
+    isSome(this: Option<T>, value?: T): this is SomeType<T>;
     isSome(this: Option<T>): this is SomeType<T>;
     /*** Returns true if the Option does not contain a value, false otherwise.*/
     isNone(this: Option<T>): this is NoneType<T>;
@@ -70,6 +88,11 @@ export interface NoneType<T = never> extends MatchOption<T>, BaseOptionFunctor<T
     clone(): Option<T>;
     /*** Returns a string representation of the Option. */
     toString(): string;
+    /**Use to convert a None value to a new Some value with the provided value.
+    *
+    * Does not return `SomeType<T>` because it is not guaranteed that the value is not null or undefined.
+    */
+    toSome<T2>(value: T2): Option<T2>;
 }
 /**
  * Checks if the provided value is an Option.

@@ -1,7 +1,9 @@
 
 # bakutils-catcher
 
-`bakutils-catcher` is a lightweight, easy-to-use TypeScript library providing utilities for robust error handling and functional programming patterns inspired by Rust. It includes:
+`bakutils-catcher` is a lightweight, easy-to-use TypeScript library providing utilities for robust error handling and functional programming patterns inspired by Rust. 
+*Note*: The library contain more pratical examples in the types itself.
+
 
 - **Decorators**: For catching exceptions and errors in your code using TypeScript decorators.
 - **Algebraic Data Types**: Implementations of `Result`, `Option`, and `OneOf` types for expressive and safe error handling.
@@ -17,6 +19,7 @@
 - [Decorators](#decorators)
     -[Catcher](#catcher)
     -[Default Catcher](#defaultcatch)
+    - [AnyErrorCatcher](#anyerrorcatcher)
 - [Quick Start](#quick-start)
 - [License](#license)
 
@@ -98,6 +101,7 @@ The `Option` type represents an optional value: every `Option` is either `Some` 
     - `unwrapOr(defaultValue)`: Returns the contained value.
     - `unwrapOrElse(fn)`: Returns the contained value.
     - `isSome()`: Returns `true`.
+    - `isSome(value?: T)`: Checks if the `Option` contains a specific value, without needing to unwrap it. (Avoiding `opt.isSome() && opt.unwrap() == 'something'`)
     - `isNone()`: Returns `false`.
     - `map(fn)`: Applies a function to the contained value, returning a new `Option`.
     - `flatMap(fn)`: Applies a function that returns an `Option`, flattening the result.
@@ -114,6 +118,7 @@ The `Option` type represents an optional value: every `Option` is either `Some` 
     - `flatMap(fn)`: Returns `None` without applying `fn`.
     - `okOr(err)`: Converts `None` to `Err`.
     - `match(handlers)`: Pattern matches on `None`.
+    - `toSome(value: T2)`: Converts a `None` type into a `Some` type containing the provided value.
 
 **Usage Example**:
 
@@ -171,11 +176,44 @@ console.log('Square area:', area(square)); // Square area: 100
 
 - `match(handlers)`: Matches the variant with the corresponding handler function.
 - `is(label)`: Type guard to check if the variant matches the specified label, refining the type of `value`.
+- `matchPartial`: Matches variants partially with a default fallback.
 
+  ```typescript
+  variant.matchPartial({
+    Success: (value) => console.log(value)
+  }, (defaultValue) => console.log("Default handler", defaultValue));
+  ```
+
+- `equals`: Checks equality between two variants.
+
+  ```typescript
+  variant.equals(anotherVariant); // true or false
+  ```
+
+- `toJSON`: Serializes the variant to JSON.
+
+  ```typescript
+  variant.toJSON(); // { type: "Success", value: "Completed" }
+  ```
+
+- `fromJSON`: Creates a variant instance from JSON.
+
+  ```typescript
+  OneOfVariant.fromJSON({ type: "Success", value: "Completed" });
+  ```
+
+- `map`: Transforms the contained value.
+
+  ```typescript
+  const variant = new OneOfVariant('Count', 10);
+  const newVariant = variant.map(count => count * 2);
+  console.log(newVariant.value); // 20
+  ```
 
 ## Decorators
 
 Decorators provide a way to add annotations and a meta-programming syntax for class declarations and members.
+The handler receives `(error, methodName, context, ...args)`.
 
 **Note**: When using decorators, make sure your `tsconfig.json` file has the `experimentalDecorators` and `emitDecoratorMetadata` properties enabled. Additionally, if a handler is not configured, you can install the [`reflect-metadata`](https://www.npmjs.com/package/reflect-metadata) library, as it works for decorators but is not included in this package to keep it dependency-free.
 
@@ -184,6 +222,12 @@ Decorators provide a way to add annotations and a meta-programming syntax for cl
 ### `@Catcher`
 
 A decorator that wraps a class method with error-handling logic, catching errors of a specific type thrown within the method.
+
+#### `@AnyErrorCatcher`
+
+Wraps a class method to catch and handle any throwable value.
+
+____________________________________________________________________
 
 **Usage**:
 

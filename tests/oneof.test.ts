@@ -1,4 +1,4 @@
-import { createOneOf, OneOf } from '../src/OneOf';
+import { createOneOf, OneOf, OneOfVariant } from '../src/OneOf';
 
 describe('OneOf Type Tests', () => {
     type VariantMap = {
@@ -206,5 +206,60 @@ describe('OneOf Type Tests', () => {
         });
         expect(unknowOneOf.is('Success')).toBe(true);
         expect(message).toBe('Success: Data loaded');
+    });
+});
+
+describe('OneOfVariant Additional Methods Tests', () => {
+    type VariantMap = {
+        NumberType: number;
+        StringType: string;
+    };
+
+    let numberVariant: OneOf<VariantMap>;
+    let stringVariant: OneOf<VariantMap>;
+
+    beforeEach(() => {
+        numberVariant = createOneOf<VariantMap, 'NumberType'>('NumberType', 100);
+        stringVariant = createOneOf<VariantMap, 'StringType'>('StringType', 'Test');
+    });
+
+    it('should correctly evaluate equality using equals method', () => {
+        const anotherNumberVariant = createOneOf<VariantMap, 'NumberType'>('NumberType', 100);
+        const differentNumberVariant = createOneOf<VariantMap, 'NumberType'>('NumberType', 101);
+
+        expect(numberVariant.equals(anotherNumberVariant)).toBe(true);
+        expect(numberVariant.equals(differentNumberVariant)).toBe(false);
+        expect(numberVariant.equals(stringVariant)).toBe(false);
+    });
+
+    it('should correctly serialize to JSON using toJSON method', () => {
+        expect(numberVariant.toJSON()).toEqual({ type: 'NumberType', value: 100 });
+        expect(stringVariant.toJSON()).toEqual({ type: 'StringType', value: 'Test' });
+    });
+
+    it('should correctly deserialize from JSON using fromJSON method', () => {
+        const json = { type: 'NumberType' as const, value: 200 };
+        const deserializedVariant = OneOfVariant.fromJSON<VariantMap, 'NumberType'>(json);
+
+        expect(deserializedVariant.type).toBe('NumberType');
+        expect(deserializedVariant.value).toBe(200);
+    });
+
+    it('should correctly transform values using map method', () => {
+        if (numberVariant.is('NumberType')) {
+            const transformedVariant = numberVariant.map(value => value * 2);
+            expect(transformedVariant.type).toBe('NumberType');
+            expect(transformedVariant.value).toBe(200);
+        } else {
+            throw new Error('Expected NumberType variant');
+        }
+
+        if (stringVariant.is('StringType')) {
+            const transformedStringVariant = stringVariant.map(value => value + 'ing');
+            expect(transformedStringVariant.type).toBe('StringType');
+            expect(transformedStringVariant.value).toBe('Testing');
+        } else {
+            throw new Error('Expected StringType variant');
+        }
     });
 });

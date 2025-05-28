@@ -1,10 +1,10 @@
 /**
  * Signature for a user‑supplied *error handler*.
  *
- * @template R Return type of the handler (becomes the resolved value of the wrapper).
- * @template E Error type that will be forwarded to the handler.
- * @template A Tuple of the original function parameters.
- * @template C Runtime `this` context inside the wrapper.
+ * @template Return Return type of the handler (becomes the resolved value of the wrapper).
+ * @template ErrorType Error type that will be forwarded to the handler.
+ * @template ArgsType Tuple of the original function parameters.
+ * @template Ctx Runtime `this` context inside the wrapper.
  *
  * @example
  * ```ts
@@ -14,7 +14,7 @@
  * };
  * ```
  */
-export type Handler<R = any, E = any, A extends any[] = any[], C = any> = (err: E, context: C, ...args: A) => R;
+export type Handler<Return = any, ErrorType = any, ArgsType extends any[] = any[], Ctx = any> = (err: ErrorType, fnName: string, context: Ctx, ...args: ArgsType) => Return;
 /**
  * `@Catcher(SpecificError, handler)` — catch **only** a specific error subclass.
  *
@@ -29,7 +29,7 @@ export type Handler<R = any, E = any, A extends any[] = any[], C = any> = (err: 
  * new Repo().query(); // logged but not re‑thrown
  * ```
  */
-export declare function Catcher<R = any, E extends Error = Error, A extends any[] = any[], C = any>(ErrCls: new (...p: any[]) => E, handler: Handler<R, E, A, C>): (_t: any, _k: string, d: PropertyDescriptor) => PropertyDescriptor;
+export declare function Catcher<ReturnType = any, ErrorType extends Error = Error, Args extends any[] = any[], Ctx = any>(ErrCls: new (...p: any[]) => ErrorType, handler: Handler<ReturnType, ErrorType, Args, Ctx>): (_t: any, methodName: string, d: PropertyDescriptor) => PropertyDescriptor;
 /**
  * `@DefaultCatcher(handler)` — catch **all** throwables (alias for `Error`).
  *
@@ -41,7 +41,7 @@ export declare function Catcher<R = any, E extends Error = Error, A extends any[
  * }
  * ```
  */
-export declare function DefaultCatcher<R = any, Args extends any[] = any[], C = any>(handler: Handler<R, Error, Args, C>): (_t: any, _k: string, d: PropertyDescriptor) => PropertyDescriptor;
+export declare function DefaultCatcher<ReturnType = any, Args extends any[] = any[], Ctx = any>(handler: Handler<ReturnType, Error, Args, Ctx>): (_t: any, methodName: string, d: PropertyDescriptor) => PropertyDescriptor;
 /**
  * `@AnyErrorCatcher(handler)` — catch literally *anything* (no instance checks).
  *
@@ -54,7 +54,7 @@ export declare function DefaultCatcher<R = any, Args extends any[] = any[], C = 
  * new Whatever().run(); // → "fallback"
  * ```
  */
-export declare function AnyErrorCatcher<R = any, A extends any[] = any[], C = any>(handler: Handler<R, unknown, A, C>): (_t: any, _k: string, d: PropertyDescriptor) => PropertyDescriptor;
+export declare function AnyErrorCatcher<ReturnType = any, Args extends any[] = any[], Ctx = any>(handler: Handler<ReturnType, unknown, Args, Ctx>): (_t: any, methodName: string, d: PropertyDescriptor) => PropertyDescriptor;
 /**
  * `defaultCatcher(fn, handler)` — wrap a function and intercept **any** error.
  *
@@ -81,4 +81,4 @@ export declare function defaultCatcher<R = any, A extends any[] = any[], C = any
  * run(); // either 'ok' or 'recovered'
  * ```
  */
-export declare function catcher<R = any, E extends Error = Error, A extends any[] = any[], C = any>(fn: (...a: A) => any, ErrCls: new (...a: any[]) => E, handler: Handler<R, E, A, C>): (...a: A) => R | Promise<R>;
+export declare function catcher<ReturnType = any, ErrorType extends Error = Error, Args extends any[] = any[], Ctx = any>(fn: (...a: Args) => any, ErrCls: new (...a: any[]) => ErrorType, handler: Handler<ReturnType, ErrorType, Args, Ctx>): (...a: Args) => ReturnType | Promise<ReturnType>;

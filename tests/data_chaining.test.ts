@@ -4,8 +4,6 @@ describe("Chaining operations on Result", () => {
 
     it('Should process an order with valid data', () => {
         const result = processOrder("valid", "valid", "Hello");
-        if (result.isErr()) console.log(result.error);
-        else console.log(result.value);
         result.match({
             Ok: (value) => expect(value).toBe("Order processed: Order details, User details, Notification sent"),
             Err: (error) => expect(error).toBeInstanceOf(Error)
@@ -16,7 +14,6 @@ describe("Chaining operations on Result", () => {
         const result = processOrder("valid", "invalid", "Hello");
         result.match({
             Ok: (value) => {
-                console.log(value);
                 expect(value).toBe("Order processed: Order details, User details, Notification sentaaa")
             },
             Err: (error) => expect(error).toBeInstanceOf(UserError)

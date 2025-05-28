@@ -47,6 +47,14 @@ export class OneOfVariant<LabelMap extends Record<string, any>, K extends keyof 
         return handlers[this.type](this.value);
     }
 
+    matchPartial<R>(
+        handlers: Partial<{ [H in keyof LabelMap]: (value: LabelMap[H]) => R }>,
+        defaultHandler: (value: LabelMap[K]) => R
+    ): R {
+        const handler = handlers[this.type];
+        return handler ? handler(this.value) : defaultHandler(this.value);
+    }
+
     /**
      * Type guard to check if the variant matches the specified label.
      *
@@ -64,6 +72,71 @@ export class OneOfVariant<LabelMap extends Record<string, any>, K extends keyof 
      */
     is<T extends keyof LabelMap>(label: T): this is OneOfVariant<LabelMap, T> {
         return this.type === (label as unknown as K);
+    }
+    /**
+    * Checks if the current variant is equal to another variant.
+    *
+    * @param other - The other variant to compare against.
+    * @returns True if both variants have the same type and value, false otherwise.
+    *
+    * @example
+    * ```typescript
+    * const variant1 = new OneOfVariant('Success', 'Data loaded');
+    * const variant2 = new OneOfVariant('Success', 'Data loaded');
+    *
+    * variant1.equals(variant2); // true
+    * ```*/
+    equals(other: OneOfVariant<LabelMap, keyof LabelMap>): boolean {
+        return this.type === other.type && this.value === other.value;
+    }
+
+    /**
+    * Serializes the variant into a JSON-compatible object.
+    *
+    * @returns A JSON object representing the variant.
+    *
+    * @example
+    * ```typescript
+    * const variant = new OneOfVariant('Success', 'Completed');
+    * const json = variant.toJSON(); // { type: 'Success', value: 'Completed' }
+    * ```
+    */
+    toJSON(): { type: K; value: LabelMap[K] } {
+        return { type: this.type, value: this.value };
+    }
+    /**
+    * Creates a new instance of OneOfVariant from a JSON-compatible object.
+    *
+    * @param json - The JSON object to deserialize.
+    * @returns A new instance of OneOfVariant.
+    *
+    * @example
+    * ```typescript
+    * const json = { type: 'Success', value: 'Completed' };
+    * const variant = OneOfVariant.fromJSON(json);
+    * ```
+    */
+    static fromJSON<LabelMap extends Record<string, any>, K extends keyof LabelMap>(
+        json: { type: K; value: LabelMap[K] }
+    ): OneOfVariant<LabelMap, K> {
+        return new OneOfVariant(json.type, json.value);
+    }
+    /**
+    * Transforms the value of the current variant using the provided mapper function.
+    *
+    * @template T - The type of the transformed value.
+    * @param mapper - A function that transforms the current value.
+    * @returns A new OneOfVariant instance with the transformed value.
+    *
+    * @example
+    * ```typescript
+    * const variant = new OneOfVariant('Count', 10);
+    * const newVariant = variant.map(count => count * 2);
+    * console.log(newVariant.value); // 20
+    * ```
+    */
+    map<T>(mapper: (value: LabelMap[K]) => T): OneOfVariant<{ [P in K]: T }, K> {
+        return new OneOfVariant(this.type, mapper(this.value));
     }
 }
 

@@ -3,10 +3,10 @@ import { BAKUtilsIsPromise, BAKUtilsIsThenable, BAKUtilsIsXrmPromiseLike, BAKUti
 /**
  * Signature for a user‑supplied *error handler*.
  *
- * @template R Return type of the handler (becomes the resolved value of the wrapper).
- * @template E Error type that will be forwarded to the handler.
- * @template A Tuple of the original function parameters.
- * @template C Runtime `this` context inside the wrapper.
+ * @template Return Return type of the handler (becomes the resolved value of the wrapper).
+ * @template ErrorType Error type that will be forwarded to the handler.
+ * @template ArgsType Tuple of the original function parameters.
+ * @template Ctx Runtime `this` context inside the wrapper.
  *
  * @example
  * ```ts
@@ -16,7 +16,7 @@ import { BAKUtilsIsPromise, BAKUtilsIsThenable, BAKUtilsIsXrmPromiseLike, BAKUti
  * };
  * ```
  */
-export type Handler<R = any, E = any, A extends any[] = any[], C = any> = (err: E, context: C, ...args: A) => R;
+export type Handler<Return = any, ErrorType = any, ArgsType extends any[] = any[], Ctx = any> = (err: ErrorType, fnName: string, context: Ctx, ...args: ArgsType) => Return;
 type ErrCtor<E> = (new (...p: any[]) => E) | undefined;
 
 /**
@@ -31,10 +31,10 @@ function createCatchLogic<R, E extends Error, A extends any[], C>(
     ErrorClass: new (...a: any[]) => E | undefined,
     handler: Handler<R, any, A, C>,
     fn: (...a: A) => any,
+    methodName: string,
 ) {
     return function (this: C, ...args: A): any {
-        const invokeHandler = (err: any) => handler.call(null, err, this, ...args);
-
+        const invokeHandler = (err: any) => methodName ? handler.call(null, err, methodName, ...args) : handler.call(null, err, this, ...args);
         try {
             const result = fn.apply(this, args);
 
@@ -66,9 +66,9 @@ function makeDecorator<R, E, A extends any[], C>(
     ErrClass: ErrCtor<E>,
     handler: Handler<R, E, A, C>,
 ) {
-    return (_t: any, _k: string, d: PropertyDescriptor) => {
+    return (_t: any, methodName: string, d: PropertyDescriptor) => {
         const original = d.value;
-        d.value = createCatchLogic<R, any, A, C>(ErrClass as any, handler, original);
+        d.value = createCatchLogic<R, any, A, C>(ErrClass as any, handler, original, methodName);
         return d;
     };
 }
@@ -88,15 +88,15 @@ function makeDecorator<R, E, A extends any[], C>(
  * ```
  */
 export function Catcher<
-  R = any,
-  E extends Error = Error,
-  A extends any[] = any[],
-  C = any,
+    ReturnType = any,
+    ErrorType extends Error = Error,
+    Args extends any[] = any[],
+    Ctx = any,
 >(
-  ErrCls: new (...p: any[]) => E,
-  handler: Handler<R, E, A, C>,
+    ErrCls: new (...p: any[]) => ErrorType,
+    handler: Handler<ReturnType, ErrorType, Args, Ctx>,
 ) {
-  return makeDecorator<R, E, A, C>(ErrCls, handler);
+    return makeDecorator<ReturnType, ErrorType, Args, Ctx>(ErrCls, handler);
 }
 
 /**
@@ -110,10 +110,10 @@ export function Catcher<
  * }
  * ```
  */
-export function DefaultCatcher<R = any, Args extends any[] = any[], C = any>(
-    handler: Handler<R, Error, Args, C>
+export function DefaultCatcher<ReturnType = any, Args extends any[] = any[], Ctx = any>(
+    handler: Handler<ReturnType, Error, Args, Ctx>
 ) {
-  return Catcher<R, Error, Args, C>(Error, handler);
+    return Catcher<ReturnType, Error, Args, Ctx>(Error, handler);
 }
 
 
@@ -130,11 +130,11 @@ export function DefaultCatcher<R = any, Args extends any[] = any[], C = any>(
  * ```
  */
 export function AnyErrorCatcher<
-  R = any,
-  A extends any[] = any[],
-  C = any,
->(handler: Handler<R, unknown, A, C>) {
-  return makeDecorator<R, unknown, A, C>(undefined, handler);
+    ReturnType = any,
+    Args extends any[] = any[],
+    Ctx = any,
+>(handler: Handler<ReturnType, unknown, Args, Ctx>) {
+    return makeDecorator<ReturnType, unknown, Args, Ctx>(undefined, handler);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -154,7 +154,8 @@ export function defaultCatcher<R = any, A extends any[] = any[], C = any>(
     fn: (...a: A) => any,
     handler: Handler<R, Error, A, C>,
 ) {
-    return createCatchLogic<R, Error, A, C>(Error, handler, fn) as (
+    const nameOfCallingFunction = fn.name || 'anonymous function';
+    return createCatchLogic<R, Error, A, C>(Error, handler, fn, nameOfCallingFunction) as (
         ...a: A
     ) => R | Promise<R>;
 }
@@ -173,16 +174,17 @@ export function defaultCatcher<R = any, A extends any[] = any[], C = any>(
  * ```
  */
 export function catcher<
-    R = any,
-    E extends Error = Error,
-    A extends any[] = any[],
-    C = any,
+    ReturnType = any,
+    ErrorType extends Error = Error,
+    Args extends any[] = any[],
+    Ctx = any,
 >(
-    fn: (...a: A) => any,
-    ErrCls: new (...a: any[]) => E,
-    handler: Handler<R, E, A, C>,
+    fn: (...a: Args) => any,
+    ErrCls: new (...a: any[]) => ErrorType,
+    handler: Handler<ReturnType, ErrorType, Args, Ctx>,
 ) {
-    return createCatchLogic<R, E, A, C>(ErrCls, handler, fn) as (
-        ...a: A
-    ) => R | Promise<R>;
+    const nameOfCallingFunction = fn.name || 'anonymous function';
+    return createCatchLogic<ReturnType, ErrorType, Args, Ctx>(ErrCls, handler, fn, nameOfCallingFunction) as (
+        ...a: Args
+    ) => ReturnType | Promise<ReturnType>;
 }
