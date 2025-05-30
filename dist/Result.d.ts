@@ -40,8 +40,10 @@ export interface Right<T, E> extends MatchResult<T, E>, RightFunctor<T, E> {
 export type Result<T, E> = Left<T, E> | Right<T, E>;
 /** Creates a successful Result with the given value.
  * @param value The value of the successful computation.
- * @returns A Result with the 'ok' type and the provided value.*/
-export declare function Ok<T, E>(value: T): Result<T, E>;
+ * @returns A Result with the 'ok' type and the provided value.
+ * @note It does support `undefined` as a valid value, which is useful for cases where the value can be optional
+*/
+export declare function Ok<T, E>(value?: T): Result<T, E>;
 /**
  * Creates a failed Result with the given error.
  * @param error The error that caused the computation to fail.

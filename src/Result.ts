@@ -45,27 +45,29 @@ export type Result<T, E> = Left<T, E> | Right<T, E>;
 
 /** Creates a successful Result with the given value.
  * @param value The value of the successful computation.
- * @returns A Result with the 'ok' type and the provided value.*/
-export function Ok<T, E>(value: T): Result<T, E> {
+ * @returns A Result with the 'ok' type and the provided value.
+ * @note It does support `undefined` as a valid value, which is useful for cases where the value can be optional
+*/
+export function Ok<T, E>(value?: T): Result<T, E> {
     return {
         type: 'ok',
-        value,
-        unwrap: () => value,
-        unwrapOr: () => value,
-        unwrapOrElse: () => value,
+        value: value as T,
+        unwrap: () => value as T,
+        unwrapOr: () => value as T,
+        unwrapOrElse: () => value as T,
         isErr: () => false,
         isOk: () => true,
         toOption: () => Option(value),
-        flatMap: (fn) => fn(value),
-        match: (handlers) => handlers.Ok(value),
+        flatMap: (fn) => fn(value as T),
+        match: (handlers) => handlers.Ok(value as T),
         map: <U>(fn: (value: T) => U): Result<U, E> => {
             try {
-                return Ok(fn(value));
+                return Ok(fn(value as T));
             } catch (error) {
                 return Err(error as E);
             }
         },
-        flatMapAsync: async (fn) => fn(value),
+        flatMapAsync: async (fn) => fn(value as T),
     };
 }
 

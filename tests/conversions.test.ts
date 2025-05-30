@@ -78,4 +78,10 @@ describe('Conversion between Option and Result', () => {
         const opt = Option(fnToFail);
         expect(opt.isNone()).toBe(true);
     });
+
+    it('Should allow empty Ok Result', () => {
+        const ok = Ok();
+        expect(ok.type).toBe('ok');
+        expect(ok.unwrap()).toBeUndefined();
+    })
 });
