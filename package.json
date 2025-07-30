@@ -1,6 +1,6 @@
 {
     "name": "bakutils-catcher",
-    "version": "6.1.0np",
+    "version": "6.1.0ix",
     "description": "Utility library for handling errors elegantly with Decorators and Rust-like algebraic types.",
     "scripts": {
         "build": "rollup -c",
