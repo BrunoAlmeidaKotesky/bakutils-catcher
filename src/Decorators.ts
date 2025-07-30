@@ -16,7 +16,12 @@ import { BAKUtilsIsPromise, BAKUtilsIsThenable, BAKUtilsIsXrmPromiseLike, BAKUti
  * };
  * ```
  */
-export type Handler<Return = any, ErrorType = any, ArgsType extends any[] = any[], Ctx = any> = (err: ErrorType, fnName: string, context: Ctx, ...args: ArgsType) => Return;
+type Handler<
+    Return = any,
+    Err = any,
+    Args extends any[] = any[],
+    Ctx = any
+> = (err: Err, fnName: string, ctx: Ctx, ...args: Args) => Return;
 type ErrCtor<E> = (new (...p: any[]) => E) | undefined;
 
 /**
@@ -27,51 +32,60 @@ type ErrCtor<E> = (new (...p: any[]) => E) | undefined;
  *  * generic thenables
  *  * plain sync returns
  */
-function createCatchLogic<R, E extends Error, A extends any[], C>(
-    ErrorClass: new (...a: any[]) => E | undefined,
+function createCatchLogic<R, E, A extends any[], C>(
+    ErrorClass: ErrCtor<E>,
     handler: Handler<R, any, A, C>,
     fn: (...a: A) => any,
-    methodName: string,
+    fnName: string,
 ) {
     return function (this: C, ...args: A): any {
-        const invokeHandler = (err: any) => methodName ? handler.call(null, err, methodName, ...args) : handler.call(null, err, this, ...args);
+        const ctx = this;
+
+        const invokeHandler = (err: any) =>
+            handler.call(null, err, fnName, ctx, ...args);
+
         try {
-            const result = fn.apply(this, args);
+            const result = fn.apply(ctx, args);
 
-            if (BAKUtilsIsPromise(result)) {
-                return result.catch(invokeHandler);
-            }
+            if (BAKUtilsIsPromise(result)) return result.catch(invokeHandler);
+            if (BAKUtilsIsXrmPromiseLike(result)) return new Promise((ok, bad) => (result as any).then(ok).catch(bad)).catch(invokeHandler);
+            if (BAKUtilsIsThenable(result)) return Promise.resolve(result).catch(invokeHandler);
 
-            if (BAKUtilsIsXrmPromiseLike(result)) {
-                return new Promise((ok, bad) => (result as any).then(ok).catch(bad)).catch(
-                    invokeHandler,
-                );
-            }
-
-            if (BAKUtilsIsThenable(result)) {
-                return Promise.resolve(result).catch(invokeHandler);
-            }
-
-            return result;
+            return result; // síncrono OK
         } catch (syncErr) {
-            if (!ErrorClass || syncErr instanceof ErrorClass || BAKUtilsIsXrmError(syncErr)) {
+            if (!ErrorClass || syncErr instanceof ErrorClass || BAKUtilsIsXrmError(syncErr))
                 return invokeHandler(syncErr);
-            }
-            throw syncErr;
+            throw syncErr; // erro de tipo diferente → propaga
         }
     };
 }
 
 function makeDecorator<R, E, A extends any[], C>(
-    ErrClass: ErrCtor<E>,
+    ErrCls: ErrCtor<E>,
     handler: Handler<R, E, A, C>,
 ) {
-    return (_t: any, methodName: string, d: PropertyDescriptor) => {
-        const original = d.value;
-        d.value = createCatchLogic<R, any, A, C>(ErrClass as any, handler, original, methodName);
-        return d;
+    return (
+        target: any,
+        propertyKey: string | symbol,
+        descriptor?: TypedPropertyDescriptor<any>,
+    ): TypedPropertyDescriptor<any> | void => {
+        const original: (...a: A) => any = descriptor?.value ?? (target as any)[propertyKey];
+
+        const wrapped = createCatchLogic<R, any, A, C>(
+            ErrCls as any,
+            handler,
+            original,
+            String(propertyKey),
+        );
+
+        if (descriptor) {
+            descriptor.value = wrapped;
+            return descriptor;
+        }
+        (target as any)[propertyKey] = wrapped;
     };
 }
+
 
 /**
  * `@Catcher(SpecificError, handler)` — catch **only** a specific error subclass.

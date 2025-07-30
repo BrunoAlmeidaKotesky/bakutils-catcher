@@ -1,38 +1,42 @@
 {
-    "compilerOptions": {
-      "target": "ES2019",
-      "declaration": true,
-      "outDir": "./dist/types",
-      "useDefineForClassFields": true,
-      "lib": [
-        "ES2019",
-        "DOM",
-        "ES2020.Promise"
-      ],
-      "allowJs": false,
-      "skipLibCheck": true,
-      "esModuleInterop": true,
-      "allowSyntheticDefaultImports": true,
-      "emitDecoratorMetadata": true,
-      "strictNullChecks": true,
-      "strict": false,
-      "forceConsistentCasingInFileNames": true,
-      "experimentalDecorators": true,
-      "module": "ES6",
-      "noUnusedLocals": true,
-      "noUnusedParameters": true,
-      "downlevelIteration": true,
-      "noErrorTruncation": true,
-      "noImplicitAny": false,
-      "moduleResolution": "Node",
-      "resolveJsonModule": true,
-      "isolatedModules": true,
-      "noEmit": false,
-      "baseUrl": "./",
-      "types": ["node", "jest"]
-    },
-    "include": [
-      "src/index.ts",
-      "index.js"
+  "compilerOptions": {
+    "target": "ESNext",
+    "declaration": true,
+    "outDir": "./dist/types",
+    "useDefineForClassFields": true,
+    "lib": [
+      "ES2019",
+      "DOM",
+      "ES2020.Promise"
+    ],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strictNullChecks": true,
+    "strict": false,
+    "forceConsistentCasingInFileNames": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "module": "ES6",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "downlevelIteration": true,
+    "noErrorTruncation": true,
+    "noImplicitAny": false,
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": false,
+    "baseUrl": "./",
+    "types": [
+      "node",
+      "jest"
     ]
-  }
+  },
+  "include": [
+    "src/index.ts",
+    "tests/**/*.ts",
+    "index.js"
+  ]
+}

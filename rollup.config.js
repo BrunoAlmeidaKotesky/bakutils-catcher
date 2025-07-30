@@ -11,7 +11,12 @@ const build = {
         compact: true,
     },
     plugins: [
-        typescript(),
+        typescript({
+            tsconfig: './tsconfig.json',
+            tsconfigOverride: {
+                exclude: ['tests', '**/*.test.ts', '**/*.spec.ts'],
+            }
+        }),
         minify()
     ],
 };

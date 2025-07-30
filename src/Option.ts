@@ -121,15 +121,14 @@ export function Some<T>(value: T extends null | undefined ? never : T): SomeType
         unwrap: () => value,
         unwrapOrU: () => value as T | undefined,
         unwrapOr: () => value,
-        isSome(d?: T) {
+        isSome(this: Option<T>, d?: T): this is SomeType<T> {
             if (d === undefined && value !== undefined)
                 return true;
             if (d !== undefined && value !== undefined)
                 return d === value;
-            if ((d === undefined && value === undefined) || (d !== undefined && value === undefined))
-                return false;
+            return false;
         },
-        isNone: () => false,
+        isNone(this: Option<T>): this is NoneType<T> { return false; },
         map<U>(fn: (value: T) => U): Option<U> {
             return Option(() => fn(value));
         },
@@ -164,8 +163,8 @@ export const None: NoneType = {
     unwrap: () => { throw new Error('Cannot unwrap None'); },
     unwrapOr: <T>(defaultValue: ValueOrFn<T>) => BAKUtilsGetFnValue(defaultValue),
     unwrapOrU: <T>() => undefined as T | undefined,
-    isSome: () => false,
-    isNone: () => true,
+    isSome(this: Option<never>, _value?: never): this is SomeType<never> { return false; },
+    isNone(this: Option<never>): this is NoneType<never> { return true; },
     map: () => None,
     flatMap: (_fn) => None,
     flatMapAsync: async (_fn) => None,
