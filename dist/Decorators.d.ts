@@ -14,7 +14,8 @@
  * };
  * ```
  */
-type Handler<Return = any, Err = any, Args extends any[] = any[], Ctx = any> = (err: Err, fnName: string, ctx: Ctx, ...args: Args) => Return;
+export type Handler<Return = any, Err = any, Args extends any[] = any[], Ctx = any> = (err: Err, fnName: string, ctx: Ctx, ...args: Args) => Return;
+export type ErrCtor<E> = (new (...p: any[]) => E) | undefined;
 /**
  * `@Catcher(SpecificError, handler)` — catch **only** a specific error subclass.
  *
@@ -82,4 +83,3 @@ export declare function defaultCatcher<R = any, A extends any[] = any[], C = any
  * ```
  */
 export declare function catcher<ReturnType = any, ErrorType extends Error = Error, Args extends any[] = any[], Ctx = any>(fn: (...a: Args) => any, ErrCls: new (...a: any[]) => ErrorType, handler: Handler<ReturnType, ErrorType, Args, Ctx>): (...a: Args) => ReturnType | Promise<ReturnType>;
-export {};

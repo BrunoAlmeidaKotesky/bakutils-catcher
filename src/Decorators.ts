@@ -16,13 +16,13 @@ import { BAKUtilsIsPromise, BAKUtilsIsThenable, BAKUtilsIsXrmPromiseLike, BAKUti
  * };
  * ```
  */
-type Handler<
+export type Handler<
     Return = any,
     Err = any,
     Args extends any[] = any[],
     Ctx = any
 > = (err: Err, fnName: string, ctx: Ctx, ...args: Args) => Return;
-type ErrCtor<E> = (new (...p: any[]) => E) | undefined;
+export type ErrCtor<E> = (new (...p: any[]) => E) | undefined;
 
 /**
  * Core implementation used by *both* decorators and higher‑order wrappers.
